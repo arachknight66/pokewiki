@@ -69,8 +69,6 @@ export default function RegisterPage() {
       });
 
       if (response.data.success) {
-        const { tokens } = response.data.data;
-        localStorage.setItem('accessToken', tokens.accessToken);
         router.push('/login?registered=true');
       }
     } catch (err: any) {
