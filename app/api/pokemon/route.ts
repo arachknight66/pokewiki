@@ -8,6 +8,8 @@ import { Pokemon } from '@/lib/types';
 import { getAllPokemonSearchData } from '@/lib/api/pokeApi';
 import { getPokemonSprites } from '@/lib/sprites';
 
+export const dynamic = 'force-dynamic';
+
 // In-memory cache for fast pagination without hitting GraphQL every query
 let cachedData: Pokemon[] | null = null;
 let lastFetchTime = 0;

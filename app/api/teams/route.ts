@@ -10,6 +10,8 @@ import { Team } from '@/lib/types';
 import { rateTeam } from '@/lib/rating-engine';
 import { v4 as uuidv4 } from 'uuid';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

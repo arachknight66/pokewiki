@@ -7,6 +7,8 @@ import { Pokemon, Move } from '@/lib/types';
 import { getPokemonDetail, getPokemonSpecies, getPokemonMovesData } from '@/lib/api/pokeApi';
 import { getPokemonSprites } from '@/lib/sprites';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }

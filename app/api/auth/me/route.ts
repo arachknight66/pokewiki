@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractTokenFromHeader, verifyToken } from '@/lib/auth';
 import { findUserById } from '@/lib/user-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     // Try Authorization header first, then fall back to cookie

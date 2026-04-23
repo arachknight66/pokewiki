@@ -7,6 +7,8 @@ import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
 import { CreateThreadSchema } from '@/lib/validators';
 import { getThreads, createThread } from '@/lib/forum-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

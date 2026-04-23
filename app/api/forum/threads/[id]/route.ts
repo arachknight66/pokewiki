@@ -7,6 +7,8 @@ import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
 import { CreateReplySchema } from '@/lib/validators';
 import { getThreadById, getRepliesForThread, createReply } from '@/lib/forum-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }

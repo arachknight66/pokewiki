@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/hooks';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,17 +23,8 @@ function PokeballSVG({ className }: { className?: string }) {
   );
 }
 
-/* ── Password Strength Helper ────────────────────────────────────────── */
-function getPasswordStrength(pw: string): number {
-  let s = 0;
-  if (pw.length >= 8) s++;
-  if (/[A-Z]/.test(pw)) s++;
-  if (/\d/.test(pw)) s++;
-  if (/[!@#$%^&*]/.test(pw)) s++;
-  return s;
-}
-
-export default function LoginPage() {
+/* ── Login Form (uses useSearchParams, must be inside Suspense) ────── */
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -210,5 +201,23 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Page Export (wraps LoginForm in Suspense) ────────────────────────── */
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="auth-scene">
+        <div className="auth-card">
+          <div className="text-center py-12">
+            <div className="w-10 h-10 border-3 border-[var(--pokedex-red)] border-t-transparent rounded-full spinner mx-auto mb-4" />
+            <p className="text-sm font-bold" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -11,6 +11,8 @@ import {
   storeRefreshTokenLocal,
 } from '@/lib/user-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // Read refresh token from body or cookie

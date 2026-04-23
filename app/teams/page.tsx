@@ -63,7 +63,7 @@ export default function TeamsPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teams.map((team: Team) => (
-            <Link key={team.id} href={`/team-builder/${team.id}`}>
+            <Link key={team.id} href={`/team-builder/${team.id}` as any}>
               <Card hoverable className="group h-full flex flex-col p-0 overflow-hidden">
                  {/* Team Header */}
                  <div className="p-5 pb-3">
