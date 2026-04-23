@@ -21,6 +21,17 @@ export interface BaseStats {
   spe: number;
 }
 
+export interface PokemonSprites {
+  officialArtwork: string;
+  officialArtworkShiny: string;
+  home3d: string;
+  home3dShiny: string;
+  showdownAnimated: string;
+  showdownAnimatedShiny: string;
+  front2d: string;
+  frontShiny2d: string;
+}
+
 export interface Pokemon {
   id: number;
   name: string;
@@ -35,6 +46,7 @@ export interface Pokemon {
   height?: number;
   weight?: number;
   baseExp?: number;
+  sprites?: PokemonSprites;
 }
 
 export interface Move {

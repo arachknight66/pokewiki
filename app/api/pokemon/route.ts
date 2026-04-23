@@ -1,11 +1,42 @@
 /**
- * API Route: Pokémon - List all Pokémon with filtering
+ * API Route: Pokémon - List all Pokémon with filtering (Migrated to PokeApi)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { PokemonFilterSchema } from '@/lib/validators';
 import { Pokemon } from '@/lib/types';
+import { getAllPokemonSearchData } from '@/lib/api/pokeApi';
+import { getPokemonSprites } from '@/lib/sprites';
+
+// In-memory cache for fast pagination without hitting GraphQL every query
+let cachedData: Pokemon[] | null = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 3600000; // 1 hour
+
+async function fetchAllPokemon(): Promise<Pokemon[]> {
+  if (cachedData && (Date.now() - lastFetchTime) < CACHE_TTL) {
+    return cachedData;
+  }
+  
+  const rawData = await getAllPokemonSearchData();
+  cachedData = rawData.map(p => ({
+    id: p.id,
+    name: p.name.replace('-', ' '),
+    pokedexNumber: p.id,
+    description: "Data loaded from PokeAPI.",
+    generation: p.generation_id,
+    stats: p.stats,
+    type1: p.types[0] as any,
+    type2: p.types[1] as any,
+    abilities: p.abilities,
+    height: p.height,
+    weight: p.weight,
+    baseExp: p.base_exp,
+    sprites: getPokemonSprites(p.id)
+  }));
+  lastFetchTime = Date.now();
+  return cachedData;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,9 +45,9 @@ export async function GET(req: NextRequest) {
     const validation = PokemonFilterSchema.safeParse({
       page: parseInt(searchParams.get('page') || '1'),
       pageSize: parseInt(searchParams.get('pageSize') || '20'),
-      search: searchParams.get('search'),
-      type1: searchParams.get('type1'),
-      type2: searchParams.get('type2'),
+      search: searchParams.get('search') || undefined,
+      type1: searchParams.get('type1') || undefined,
+      type2: searchParams.get('type2') || undefined,
       generation: searchParams.get('generation') ? parseInt(searchParams.get('generation')!) : undefined,
       sortBy: searchParams.get('sortBy') || 'id',
       sortOrder: searchParams.get('sortOrder') || 'asc',
@@ -39,88 +70,46 @@ export async function GET(req: NextRequest) {
     const { page, pageSize, search, type1, type2, generation, sortBy, sortOrder } = validation.data;
     const offset = (page - 1) * pageSize;
 
-    // Build dynamic query
-    let whereConditions: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
+    // Fetch all records
+    const allPokemon = await fetchAllPokemon();
 
-    if (search) {
-      whereConditions.push(`name ILIKE $${paramIndex}`);
-      params.push(`%${search}%`);
-      paramIndex++;
-    }
+    // 1. Filter
+    let filtered = allPokemon.filter(p => {
+      // Name
+      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+      // Types
+      if (type1 && p.type1 !== type1) return false;
+      if (type2) {
+          if (p.type2 !== type2 && p.type1 !== type2) return false;
+      }
+      // Generation
+      if (generation && p.generation !== generation) return false;
+      
+      return true;
+    });
 
-    if (type1) {
-      whereConditions.push(`type_1 = $${paramIndex}`);
-      params.push(type1);
-      paramIndex++;
-    }
+    // 2. Sort
+    filtered.sort((a, b) => {
+      let valA: any = a.pokedexNumber;
+      let valB: any = b.pokedexNumber;
+      if (sortBy === 'name') {
+        valA = a.name;
+        valB = b.name;
+      }
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
 
-    if (type2) {
-      whereConditions.push(`type_2 = $${paramIndex}`);
-      params.push(type2);
-      paramIndex++;
-    }
-
-    if (generation) {
-      whereConditions.push(`generation = $${paramIndex}`);
-      params.push(generation);
-      paramIndex++;
-    }
-
-    let whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
-    const sortColumn = sortBy === 'id' ? 'pokedex_number' : 'name';
-    const sortDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
-
-    // Get total count
-    const countQuery = `SELECT COUNT(*) as total FROM pokemon ${whereClause}`;
-    const countResult = await query(countQuery, params);
-    const total = countResult.rows[0].total;
-
-    // Get paginated results
-    const dataQuery = `
-      SELECT 
-        id, name, pokedex_number, description, generation,
-        hp, attack, defense, spa, spd, spe,
-        type_1, type_2, height, weight, base_exp, abilities
-      FROM pokemon
-      ${whereClause}
-      ORDER BY ${sortColumn} ${sortDirection}
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-
-    params.push(pageSize, offset);
-
-    const result = await query(dataQuery, params);
-
-    const pokemon: Pokemon[] = result.rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      pokedexNumber: row.pokedex_number,
-      description: row.description,
-      generation: row.generation,
-      stats: {
-        hp: row.hp,
-        attack: row.attack,
-        defense: row.defense,
-        spa: row.spa,
-        spd: row.spd,
-        spe: row.spe,
-      },
-      type1: row.type_1,
-      type2: row.type_2,
-      abilities: row.abilities || [],
-      height: row.height,
-      weight: row.weight,
-      baseExp: row.base_exp,
-    }));
-
+    // 3. Paginate
+    const total = filtered.length;
+    const paginated = filtered.slice(offset, offset + pageSize);
     const totalPages = Math.ceil(total / pageSize);
 
     return NextResponse.json(
       {
         success: true,
-        data: pokemon,
+        data: paginated,
         meta: {
           total,
           page,
@@ -131,13 +120,13 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Pokémon list error:', error);
+    console.error('Pokémon list API error:', error);
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'FETCH_ERROR',
-          message: 'Failed to fetch Pokémon',
+          message: 'Failed to fetch Pokémon from PokeAPI',
         },
       },
       { status: 500 }

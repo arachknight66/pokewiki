@@ -84,16 +84,18 @@ export function usePokemonList({
   pageSize = 20,
   search = '',
   type1 = '',
+  generation = 0,
   sortBy = 'id',
 } = {}) {
   return useQuery({
-    queryKey: ['pokemon-list', { page, pageSize, search, type1, sortBy }],
+    queryKey: ['pokemon-list', { page, pageSize, search, type1, generation, sortBy }],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
         ...(search && { search }),
         ...(type1 && { type1 }),
+        ...(generation && { generation: generation.toString() }),
         sortBy,
       });
 

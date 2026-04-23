@@ -81,7 +81,7 @@ button {
 }
 
 button:active {
-  @apply transform scale-98;
+  @apply transform scale-[0.98];
 }
 
 /* Loading animation */
