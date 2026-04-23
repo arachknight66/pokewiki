@@ -15,7 +15,7 @@ export const RegisterSchema = z.object({
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain alphanumeric characters, underscore, and hyphen'),
   password: z.string()
-    .min(12, 'Password must be at least 12 characters')
+    .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/\d/, 'Password must contain at least one number')
     .regex(/[!@#$%^&*]/, 'Password must contain at least one special character'),
@@ -40,7 +40,7 @@ export const RefreshTokenSchema = z.object({
 
 export const PokemonFilterSchema = z.object({
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().min(1).max(100).default(20),
+  pageSize: z.number().int().min(1).max(2000).default(20),
   search: z.string().optional(),
   type1: z.string().optional(),
   type2: z.string().optional(),
@@ -68,7 +68,7 @@ export const UpdateTeamSchema = CreateTeamSchema.partial();
 
 export const TeamListSchema = z.object({
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().min(1).max(100).default(20),
+  pageSize: z.number().int().min(1).max(2000).default(20),
   sortBy: z.enum(['rating', 'created', 'name']).default('created'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
@@ -97,7 +97,7 @@ export const CreateReplySchema = z.object({
 
 export const ThreadListSchema = z.object({
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().min(1).max(100).default(20),
+  pageSize: z.number().int().min(1).max(2000).default(20),
   category: z.enum(['strategy', 'team-building', 'meta-discussion', 'general']).optional(),
   search: z.string().optional(),
   sortBy: z.enum(['latest', 'popular', 'trending']).default('latest'),
@@ -148,5 +148,5 @@ export const UpdateProfileSchema = z.object({
 
 export const PaginationSchema = z.object({
   page: z.number().int().positive().default(1),
-  pageSize: z.number().int().min(1).max(100).default(20),
+  pageSize: z.number().int().min(1).max(2000).default(20),
 });

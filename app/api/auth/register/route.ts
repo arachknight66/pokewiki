@@ -2,55 +2,33 @@
  * API Route: Authentication - Register
  */
 
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { hashPassword, createAuthTokens, isValidPassword, isValidEmail } from '@/lib/auth';
-import { sendSuccess, sendError, sendValidationError } from '@/lib/api-utils';
+import { hashPassword, createAuthTokens } from '@/lib/auth';
 import { RegisterSchema } from '@/lib/validators';
 import { User } from '@/lib/types';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return sendError(res, 'Method not allowed', 405, 'METHOD_NOT_ALLOWED');
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    const validation = RegisterSchema.safeParse(req.body);
+    const body = await req.json();
+    const validation = RegisterSchema.safeParse(body);
 
     if (!validation.success) {
       const errors = validation.error.flatten().fieldErrors;
-      return sendValidationError(res, errors);
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Validation failed',
+            details: errors,
+          },
+        },
+        { status: 422 }
+      );
     }
 
     const { email, username, password } = validation.data;
-
-    // Additional validation
-    if (!isValidEmail(email)) {
-      return sendError(res, 'Invalid email format', 400, 'INVALID_EMAIL');
-    }
-
-    const passwordValidation = isValidPassword(password);
-    if (!passwordValidation.valid) {
-      return sendError(
-        res,
-        'Password does not meet requirements',
-        400,
-        'WEAK_PASSWORD',
-        { errors: passwordValidation.errors }
-      );
-    }
 
     // Check if email already exists
     const existingEmail = await query(
@@ -59,7 +37,13 @@ export default async function handler(
     );
 
     if (existingEmail.rows.length > 0) {
-      return sendError(res, 'Email already in use', 409, 'EMAIL_EXISTS');
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'EMAIL_EXISTS', message: 'Email already in use' },
+        },
+        { status: 409 }
+      );
     }
 
     // Check if username already exists
@@ -69,7 +53,13 @@ export default async function handler(
     );
 
     if (existingUsername.rows.length > 0) {
-      return sendError(res, 'Username already taken', 409, 'USERNAME_EXISTS');
+      return NextResponse.json(
+        {
+          success: false,
+          error: { code: 'USERNAME_EXISTS', message: 'Username already taken' },
+        },
+        { status: 409 }
+      );
     }
 
     // Hash password
@@ -101,27 +91,49 @@ export default async function handler(
       createdAt: user.created_at,
     } as User);
 
-    // Set cookies
-    res.setHeader('Set-Cookie', [
-      `accessToken=${tokens.accessToken}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict`,
-      `refreshToken=${tokens.refreshToken}; Path=/; HttpOnly; Max-Age=604800; SameSite=Strict`,
-    ]);
-
-    return sendSuccess(
-      res,
+    // Create response
+    const response = NextResponse.json(
       {
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          preferences: user.preferences,
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            preferences: user.preferences,
+          },
+          tokens,
         },
-        tokens,
       },
-      201
+      { status: 201 }
     );
+
+    // Set cookies
+    response.cookies.set('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 86400,
+      path: '/',
+    });
+
+    response.cookies.set('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 604800,
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Registration error:', error);
-    return sendError(res, 'Registration failed', 500, 'REGISTRATION_ERROR');
+    return NextResponse.json(
+      {
+        success: false,
+        error: { code: 'REGISTRATION_ERROR', message: 'Registration failed' },
+      },
+      { status: 500 }
+    );
   }
 }

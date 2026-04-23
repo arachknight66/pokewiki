@@ -1,8 +1,8 @@
 /**
- * Database connection and query utilities
+ * Database connection and query utilities - PostgreSQL Implementation
  */
 
-import { Pool, QueryResult } from 'pg';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 interface DbConnection {
   pool: Pool | null;
@@ -17,18 +17,18 @@ const db: DbConnection = {
  */
 export function initializeDatabase() {
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is required');
+    throw new Error('DATABASE_URL environment variable is required for PostgreSQL mode.');
   }
 
   db.pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 5000,
   });
 
   db.pool.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
+    console.error('Unexpected error on idle PostgreSQL client', err);
   });
 
   return db.pool;
@@ -47,7 +47,7 @@ export function getPool(): Pool {
 /**
  * Execute a query
  */
-export async function query<T = any>(
+export async function query<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
@@ -61,7 +61,7 @@ export async function query<T = any>(
     }
     return result;
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Database query error:', error);
     throw error;
   }
 }
@@ -69,7 +69,7 @@ export async function query<T = any>(
 /**
  * Execute a single row query
  */
-export async function queryOne<T = any>(
+export async function queryOne<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<T | null> {
@@ -80,7 +80,7 @@ export async function queryOne<T = any>(
 /**
  * Execute multiple queries
  */
-export async function queryAll<T = any>(
+export async function queryAll<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<T[]> {
@@ -92,7 +92,7 @@ export async function queryAll<T = any>(
  * Execute transaction
  */
 export async function transaction<T>(
-  callback: (query: typeof query) => Promise<T>
+  callback: (q: (text: string, params?: any[]) => Promise<any>) => Promise<T>
 ): Promise<T> {
   const pool = getPool();
   const client = await pool.connect();
@@ -120,51 +120,4 @@ export async function closeDatabase(): Promise<void> {
     await db.pool.end();
     db.pool = null;
   }
-}
-
-/**
- * Prepare a SQL query with proper escaping
- * Useful for building dynamic queries
- */
-export function buildQuery(
-  baseQuery: string,
-  conditions?: Record<string, any>,
-  options?: { orderBy?: string; limit?: number; offset?: number }
-): { query: string; params: any[] } {
-  let query = baseQuery;
-  const params: any[] = [];
-  let paramIndex = 1;
-
-  if (conditions && Object.keys(conditions).length > 0) {
-    const whereConditions: string[] = [];
-    
-    Object.entries(conditions).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        whereConditions.push(`${key} = $${paramIndex}`);
-        params.push(value);
-        paramIndex++;
-      }
-    });
-
-    if (whereConditions.length > 0) {
-      query += ` WHERE ${whereConditions.join(' AND ')}`;
-    }
-  }
-
-  if (options?.orderBy) {
-    query += ` ORDER BY ${options.orderBy}`;
-  }
-
-  if (options?.limit) {
-    query += ` LIMIT $${paramIndex}`;
-    params.push(options.limit);
-    paramIndex++;
-  }
-
-  if (options?.offset) {
-    query += ` OFFSET $${paramIndex}`;
-    params.push(options.offset);
-  }
-
-  return { query, params };
 }

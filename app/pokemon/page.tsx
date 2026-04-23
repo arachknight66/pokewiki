@@ -1,5 +1,5 @@
 /**
- * Pokémon Database Page — with sprite images
+ * Pokémon Database Page — Pokémon Anime-inspired Pokédex cards
  */
 
 'use client';
@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { usePokemonList } from '@/hooks';
 import { Card } from '@/components/ui/Card';
 import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
+import PokeballLoader from '@/components/ui/PokeballLoader';
 import { Pokemon } from '@/lib/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -21,12 +22,19 @@ const TYPE_COLORS: Record<string, string> = {
   dark:     '#705848', steel:    '#B8B8D0', fairy:    '#EE99AC',
 };
 
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
 export default function PokemonPage() {
   const [page, setPage] = useState(1);
   const [selectedType, setSelectedType] = useState('');
   const [selectedGen, setSelectedGen] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const { data: pokemonListData, isLoading } = usePokemonList({
     page,
     pageSize: 20,
@@ -42,15 +50,15 @@ export default function PokemonPage() {
   ];
 
   const generations = [
-    { id: 1, label: 'Gen I',   region: 'Kanto' },
-    { id: 2, label: 'Gen II',  region: 'Johto' },
-    { id: 3, label: 'Gen III', region: 'Hoenn' },
-    { id: 4, label: 'Gen IV',  region: 'Sinnoh' },
-    { id: 5, label: 'Gen V',   region: 'Unova' },
-    { id: 6, label: 'Gen VI',  region: 'Kalos' },
-    { id: 7, label: 'Gen VII', region: 'Alola' },
-    { id: 8, label: 'Gen VIII',region: 'Galar' },
-    { id: 9, label: 'Gen IX',  region: 'Paldea' },
+    { id: 1, label: 'I',    region: 'Kanto' },
+    { id: 2, label: 'II',   region: 'Johto' },
+    { id: 3, label: 'III',  region: 'Hoenn' },
+    { id: 4, label: 'IV',   region: 'Sinnoh' },
+    { id: 5, label: 'V',    region: 'Unova' },
+    { id: 6, label: 'VI',   region: 'Kalos' },
+    { id: 7, label: 'VII',  region: 'Alola' },
+    { id: 8, label: 'VIII', region: 'Galar' },
+    { id: 9, label: 'IX',   region: 'Paldea' },
   ];
 
   const handleSearch = (term: string) => {
@@ -62,36 +70,47 @@ export default function PokemonPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold mb-2">Pokémon Database</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          Browse and analyze all Pokémon with detailed stats
+        <h1 className="text-4xl lg:text-5xl font-black font-display">
+          <span className="anime-heading">Pokédex</span>
+        </h1>
+        <p className="text-base mt-2" style={{ color: 'var(--text-secondary)' }}>
+          {pokemonListData?.meta?.total
+            ? `${pokemonListData.meta.total} Pokémon discovered`
+            : 'Browse all known Pokémon species'}
         </p>
       </div>
 
-      {/* Filters */}
-      <Card className="space-y-5">
+      {/* Filters — Pokédex panel style */}
+      <div className="pokedex-panel p-5 space-y-4">
+        {/* Search */}
         <div>
-          <label className="block text-sm font-medium mb-2">Search</label>
+          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+            Search
+          </label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search Pokémon by name..."
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search by name..."
+            className="w-full px-4 py-2.5 rounded-xl text-sm"
           />
         </div>
 
         {/* Generation Filter */}
         <div>
-          <label className="block text-sm font-medium mb-2">Generation</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+            Generation
+          </label>
+          <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => { setSelectedGen(0); setPage(1); }}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                selectedGen === 0
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-lg scale-105'
-                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+              className="px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200"
+              style={{
+                background: selectedGen === 0 ? 'linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark))' : 'var(--bg-secondary)',
+                color: selectedGen === 0 ? 'white' : 'var(--text-secondary)',
+                border: `2px solid ${selectedGen === 0 ? 'var(--pokedex-red-dark)' : 'var(--border-color)'}`,
+                boxShadow: selectedGen === 0 ? '0 2px 8px rgba(var(--glow-color), 0.25)' : 'none',
+              }}
             >
               All
             </button>
@@ -99,14 +118,16 @@ export default function PokemonPage() {
               <button
                 key={gen.id}
                 onClick={() => { setSelectedGen(gen.id); setPage(1); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  selectedGen === gen.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/40 scale-105'
-                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
+                className="px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 group"
+                style={{
+                  background: selectedGen === gen.id ? 'linear-gradient(135deg, var(--accent-secondary), #1D4ED8)' : 'var(--bg-secondary)',
+                  color: selectedGen === gen.id ? 'white' : 'var(--text-secondary)',
+                  border: `2px solid ${selectedGen === gen.id ? '#1E40AF' : 'var(--border-color)'}`,
+                  boxShadow: selectedGen === gen.id ? '0 2px 8px rgba(37, 99, 235, 0.3)' : 'none',
+                }}
+                title={gen.region}
               >
                 {gen.label}
-                <span className="ml-1 opacity-60 hidden sm:inline">({gen.region})</span>
               </button>
             ))}
           </div>
@@ -114,108 +135,124 @@ export default function PokemonPage() {
 
         {/* Type Filter */}
         <div>
-          <label className="block text-sm font-medium mb-2">Filter by Type</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
+            Type
+          </label>
+          <div className="flex flex-wrap gap-1.5">
             <button
-              onClick={() => {
-                setSelectedType('');
-                setPage(1);
+              onClick={() => { setSelectedType(''); setPage(1); }}
+              className="px-3 py-1.5 rounded-lg text-xs font-extrabold capitalize transition-all duration-200"
+              style={{
+                background: selectedType === '' ? 'linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark))' : 'var(--bg-secondary)',
+                color: selectedType === '' ? 'white' : 'var(--text-secondary)',
+                border: `2px solid ${selectedType === '' ? 'var(--pokedex-red-dark)' : 'var(--border-color)'}`,
               }}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                selectedType === ''
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-lg scale-105'
-                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
             >
               All
             </button>
-            {types.map(type => (
-              <button
-                key={type}
-                onClick={() => {
-                  setSelectedType(type);
-                  setPage(1);
-                }}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all"
-                style={{
-                  backgroundColor: selectedType === type ? TYPE_COLORS[type] : undefined,
-                  color: selectedType === type ? '#fff' : undefined,
-                  boxShadow: selectedType === type ? `0 4px 14px ${TYPE_COLORS[type]}66` : undefined,
-                  transform: selectedType === type ? 'scale(1.08)' : undefined,
-                }}
-              >
-                {type}
-              </button>
-            ))}
+            {types.map(type => {
+              const tc = TYPE_COLORS[type];
+              const isActive = selectedType === type;
+              return (
+                <button
+                  key={type}
+                  onClick={() => { setSelectedType(type); setPage(1); }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-extrabold capitalize transition-all duration-200"
+                  style={{
+                    background: isActive ? tc : 'var(--bg-secondary)',
+                    color: isActive ? '#fff' : 'var(--text-secondary)',
+                    border: `2px solid ${isActive ? tc : 'var(--border-color)'}`,
+                    boxShadow: isActive ? `0 2px 10px ${tc}55` : 'none',
+                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  }}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Results */}
       {isLoading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Card key={i} className="animate-pulse h-64">
-              <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-32 mb-4" />
-              <div className="bg-gray-200 dark:bg-gray-700 rounded h-4 w-2/3 mb-2" />
-              <div className="bg-gray-200 dark:bg-gray-700 rounded h-3 w-1/3" />
-            </Card>
-          ))}
-        </div>
+        <PokeballLoader message="Catching Pokémon data..." />
       ) : pokemonListData?.data?.length === 0 ? (
-        <Card className="text-center py-12">
-          <p className="text-xl text-gray-500">No Pokémon found</p>
-          <p className="text-sm text-gray-400 mt-2">Try adjusting your search or filters</p>
+        <Card className="text-center py-16">
+          <p className="text-2xl font-black font-display mb-2">No Pokémon found</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Try adjusting your search or filters
+          </p>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
             {pokemonListData?.data?.map((pokemon: Pokemon) => {
               const bgColor = TYPE_COLORS[pokemon.type1] || '#A8A878';
+              const rgb = hexToRgb(bgColor);
               return (
-                <Link
-                  key={pokemon.id}
-                  href={`/pokemon/${pokemon.id}`}
-                >
+                <Link key={pokemon.id} href={`/pokemon/${pokemon.id}`}>
                   <div
-                    className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl cursor-pointer"
+                    className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer energy-burst"
                     style={{
-                      background: `linear-gradient(135deg, ${bgColor}22, ${bgColor}44)`,
-                      border: `1px solid ${bgColor}33`,
+                      background: 'var(--bg-card)',
+                      border: `2px solid rgba(${rgb}, 0.2)`,
+                      boxShadow: 'var(--shadow-card)',
+                      ['--glow-color' as any]: rgb,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 8px 25px rgba(${rgb}, 0.2), 0 0 30px rgba(${rgb}, 0.08)`;
+                      e.currentTarget.style.borderColor = `rgba(${rgb}, 0.5)`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                      e.currentTarget.style.borderColor = `rgba(${rgb}, 0.2)`;
                     }}
                   >
+                    {/* Type color stripe at top */}
+                    <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88)` }} />
+
+                    {/* Type gradient overlay */}
+                    <div
+                      className="absolute inset-0 opacity-[0.04] dark:opacity-[0.08] transition-opacity group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14]"
+                      style={{ background: `linear-gradient(135deg, ${bgColor}44, transparent 60%)` }}
+                    />
+
                     {/* Pokédex number watermark */}
-                    <span
-                      className="absolute top-2 right-3 text-5xl font-black opacity-[0.07] select-none"
-                    >
+                    <span className="absolute top-3 right-3 text-4xl font-black select-none opacity-[0.04] dark:opacity-[0.07] font-display">
                       #{String(pokemon.pokedexNumber).padStart(3, '0')}
                     </span>
 
                     {/* Sprite */}
                     <div className="relative flex items-center justify-center pt-4 pb-2 h-36">
+                      {/* Radial glow behind sprite */}
+                      <div
+                        className="absolute inset-0 m-auto w-20 h-20 rounded-full opacity-15 dark:opacity-25 blur-2xl transition-opacity group-hover:opacity-30 dark:group-hover:opacity-45"
+                        style={{ backgroundColor: bgColor }}
+                      />
                       {pokemon.sprites?.officialArtwork && (
                         <Image
                           src={pokemon.sprites.officialArtwork}
                           alt={pokemon.name}
                           width={120}
                           height={120}
-                          className="drop-shadow-lg group-hover:scale-110 transition-transform duration-300 object-contain"
+                          className="relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:drop-shadow-2xl transition-all duration-300 ease-smooth object-contain"
                           unoptimized
                         />
                       )}
                     </div>
 
                     {/* Info */}
-                    <div className="px-4 pb-4 space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider opacity-50">
+                    <div className="relative z-10 px-3.5 pb-3.5 space-y-1.5">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bgColor }}>
                         #{String(pokemon.pokedexNumber).padStart(3, '0')}
                       </p>
-                      <h3 className="text-base font-bold capitalize leading-tight">
+                      <h3 className="text-sm font-extrabold font-display capitalize leading-tight">
                         {pokemon.name}
                       </h3>
                       <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} size="sm" />
 
-                      {/* Quick Stats Row */}
+                      {/* Quick Stats */}
                       <div className="flex gap-1 pt-1">
                         {[
                           { label: 'HP', val: pokemon.stats.hp },
@@ -225,10 +262,12 @@ export default function PokemonPage() {
                           <div
                             key={s.label}
                             className="flex-1 text-center rounded-md py-1"
-                            style={{ backgroundColor: `${bgColor}18` }}
+                            style={{ backgroundColor: `rgba(${rgb}, 0.07)`, border: `1px solid rgba(${rgb}, 0.1)` }}
                           >
-                            <p className="text-[10px] font-medium opacity-60">{s.label}</p>
-                            <p className="text-xs font-bold">{s.val}</p>
+                            <p className="text-[8px] font-extrabold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                              {s.label}
+                            </p>
+                            <p className="text-[11px] font-black">{s.val}</p>
                           </div>
                         ))}
                       </div>
@@ -241,21 +280,30 @@ export default function PokemonPage() {
 
           {/* Pagination */}
           {(pokemonListData?.meta?.totalPages || 0) > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8">
+            <div className="flex justify-center items-center gap-3 mt-10">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="px-5 py-2.5 rounded-xl bg-gray-200 dark:bg-gray-800 font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                className="anime-btn px-5 py-2.5 rounded-xl font-extrabold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '2px solid var(--border-color-bold)',
+                }}
               >
-                ← Previous
+                ← Prev
               </button>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Page {page} of {pokemonListData?.meta?.totalPages}
+              <span className="text-sm font-extrabold px-4 py-2 rounded-xl"
+                style={{ background: 'var(--bg-card)', border: '2px solid var(--border-color)' }}>
+                {page} / {pokemonListData?.meta?.totalPages}
               </span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page === pokemonListData?.meta?.totalPages}
-                className="px-5 py-2.5 rounded-xl bg-gray-200 dark:bg-gray-800 font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                className="anime-btn px-5 py-2.5 rounded-xl font-extrabold text-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '2px solid var(--border-color-bold)',
+                }}
               >
                 Next →
               </button>

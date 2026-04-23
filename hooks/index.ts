@@ -23,13 +23,16 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/auth/me`);
+        const token = localStorage.getItem('accessToken');
+        const response = await axios.get(`${API_URL}/api/auth/me`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
         if (response.data.success) {
           setUser(response.data.data);
         }
       } catch (err) {
         // Not authenticated
-        setError(null);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +49,9 @@ export function useAuth() {
       });
 
       if (response.data.success) {
-        setUser(response.data.data.user);
+        const { user, tokens } = response.data.data;
+        localStorage.setItem('accessToken', tokens.accessToken);
+        setUser(user);
         return response.data.data;
       }
     } catch (err: any) {
@@ -59,6 +64,8 @@ export function useAuth() {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('accessToken');
+    // Also remove cookies via a logout API call if needed
+    axios.post(`${API_URL}/api/auth/logout`).catch(() => {});
   }, []);
 
   return { user, isLoading, error, login, logout };

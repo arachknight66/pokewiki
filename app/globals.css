@@ -1,128 +1,643 @@
 /**
- * Global Styles
+ * PokéWiki — Pokémon Anime-Inspired Global Styles
+ * Aesthetic: Cel-shaded, vibrant, Pokédex-red UI with energy burst effects
  */
 
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* Smooth scrolling */
+/* ============================================================================
+   CSS CUSTOM PROPERTIES — POKÉMON ANIME PALETTE
+   ============================================================================ */
+
+:root {
+  /* Light mode — bright anime daytime scene */
+  --bg-primary:      #f8f5f0;
+  --bg-secondary:    #f0ebe3;
+  --bg-card:         rgba(255, 255, 255, 0.85);
+  --bg-card-hover:   rgba(255, 255, 255, 0.95);
+  --bg-input:        #ffffff;
+  --bg-nav:          rgba(248, 245, 240, 0.88);
+
+  --text-primary:    #1a1a2e;
+  --text-secondary:  #555570;
+  --text-muted:      #8888a0;
+
+  --border-color:      rgba(0, 0, 0, 0.08);
+  --border-color-bold: rgba(0, 0, 0, 0.14);
+
+  /* Pokémon anime red — the iconic Pokédex/Ash's cap red */
+  --pokedex-red:       #DC2626;
+  --pokedex-red-light: #FCA5A5;
+  --pokedex-red-dark:  #991B1B;
+
+  /* Anime accent palette */
+  --accent-primary:    #DC2626;
+  --accent-secondary:  #2563EB;
+  --accent-gold:       #F59E0B;
+  --accent-gradient:   linear-gradient(135deg, #DC2626, #F59E0B, #2563EB);
+
+  --glow-intensity:  0.25;
+  --glow-color:      220, 38, 38;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 30px rgba(220, 38, 38, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  --scrollbar-track: #f0ebe3;
+  --scrollbar-thumb: #c4b8a8;
+  --scrollbar-thumb-hover: #a0937f;
+}
+
+.dark {
+  /* Dark mode — anime nighttime/cave/Team Rocket vibes */
+  --bg-primary:      #0f0f1a;
+  --bg-secondary:    #1a1a2e;
+  --bg-card:         rgba(26, 26, 46, 0.8);
+  --bg-card-hover:   rgba(36, 36, 66, 0.9);
+  --bg-input:        #1a1a2e;
+  --bg-nav:          rgba(15, 15, 26, 0.9);
+
+  --text-primary:    #f0f0f5;
+  --text-secondary:  #a0a0b8;
+  --text-muted:      #6a6a88;
+
+  --border-color:      rgba(255, 255, 255, 0.06);
+  --border-color-bold: rgba(255, 255, 255, 0.1);
+
+  --pokedex-red:       #EF4444;
+  --pokedex-red-light: #FCA5A5;
+  --pokedex-red-dark:  #DC2626;
+
+  --accent-primary:    #EF4444;
+  --accent-secondary:  #3B82F6;
+  --accent-gold:       #F59E0B;
+  --accent-gradient:   linear-gradient(135deg, #EF4444, #F59E0B, #3B82F6);
+
+  --glow-intensity:  0.45;
+  --glow-color:      239, 68, 68;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 8px 30px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  --scrollbar-track: #1a1a2e;
+  --scrollbar-thumb: #2a2a48;
+  --scrollbar-thumb-hover: #3d3d60;
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
 html {
   scroll-behavior: smooth;
 }
 
-/* Typography improvements */
 body {
-  @apply text-gray-900 antialiased;
-  font-feature-settings: 'rligatures' 1 'calt' 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-feature-settings: 'rlig' 1, 'calt' 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s ease, color 0.3s ease;
 }
 
-/* Headings */
+/* ============================================================================
+   TYPOGRAPHY — Anime Title Card Style
+   ============================================================================ */
+
 h1, h2, h3, h4, h5, h6 {
-  @apply font-bold tracking-tight;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
 }
 
-h1 {
-  @apply text-4xl lg:text-5xl font-display;
+h1 { font-size: 2.25rem; line-height: 2.5rem; }
+h2 { font-size: 1.875rem; line-height: 2.25rem; }
+h3 { font-size: 1.5rem; line-height: 2rem; }
+
+@media (min-width: 1024px) {
+  h1 { font-size: 3rem; line-height: 1; }
 }
 
-h2 {
-  @apply text-3xl font-display;
-}
-
-h3 {
-  @apply text-2xl;
-}
-
-/* Links */
 a {
-  @apply transition-colors duration-200;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
-a:hover {
-  @apply text-primary-600;
+/* ============================================================================
+   ANIME HEADING — Pokémon anime title card gradient
+   ============================================================================ */
+
+.anime-heading {
+  background: linear-gradient(135deg, var(--pokedex-red), var(--accent-gold), var(--accent-secondary));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s ease infinite;
+  font-weight: 900;
 }
 
-/* Form elements */
+.dark .anime-heading {
+  filter: brightness(1.15);
+}
+
+/* ============================================================================
+   GLASSMORPHISM + CEL-SHADED CARDS
+   ============================================================================ */
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(var(--glow-color), 0.25);
+}
+
+.glass-card-glow {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, transparent, rgba(var(--glow-color), 0.2), transparent, rgba(var(--glow-color), 0.1));
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glass-card-glow:hover::before {
+  opacity: 1;
+}
+
+.glass-card-glow:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(var(--glow-color), 0.3);
+}
+
+.glass-nav {
+  background: var(--bg-nav);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 2px solid var(--border-color);
+  transition: background 0.4s ease, border-color 0.3s ease;
+}
+
+/* ============================================================================
+   POKÉDEX PANEL STYLE — inspired by the anime Pokédex device
+   ============================================================================ */
+
+.pokedex-panel {
+  background: var(--bg-card);
+  border: 2px solid var(--pokedex-red);
+  border-radius: 1rem;
+  box-shadow: 0 0 0 1px rgba(var(--glow-color), 0.05),
+              inset 0 1px 0 rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.pokedex-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pokedex-red), var(--accent-gold), var(--pokedex-red));
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ============================================================================
+   SPEED LINES — anime action effect
+   ============================================================================ */
+
+.speed-lines {
+  position: relative;
+  overflow: hidden;
+}
+
+.speed-lines::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 40px,
+    rgba(var(--glow-color), 0.02) 40px,
+    rgba(var(--glow-color), 0.02) 41px
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.speed-lines:hover::after {
+  opacity: 1;
+}
+
+/* ============================================================================
+   ENERGY BURST — type attack animation on hover
+   ============================================================================ */
+
+.energy-burst {
+  position: relative;
+  overflow: hidden;
+}
+
+.energy-burst::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(var(--glow-color), 0.15), transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s ease, height 0.5s ease;
+  pointer-events: none;
+}
+
+.energy-burst:hover::after {
+  width: 200%;
+  height: 200%;
+}
+
+/* ============================================================================
+   STAT BARS — anime battle HUD style
+   ============================================================================ */
+
+.stat-bar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.2, 0.6, 0.2, 1);
+  position: relative;
+}
+
+.stat-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+  border-radius: inherit;
+}
+
+.dark .stat-bar-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ============================================================================
+   ANIME BUTTONS — bold, cel-shaded with thick borders
+   ============================================================================ */
+
+.anime-btn {
+  position: relative;
+  font-weight: 800;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+  overflow: hidden;
+  letter-spacing: 0.01em;
+}
+
+.anime-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.anime-btn:hover::before {
+  opacity: 1;
+}
+
+.anime-btn:hover {
+  transform: translateY(-2px);
+}
+
+.anime-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Primary — Pokédex red */
+.anime-btn-primary {
+  background: linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark));
+  color: white;
+  border: 2px solid var(--pokedex-red-dark);
+  box-shadow: 0 4px 15px rgba(var(--glow-color), 0.3),
+              inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.anime-btn-primary:hover {
+  box-shadow: 0 6px 25px rgba(var(--glow-color), 0.45),
+              inset 0 1px 0 rgba(255,255,255,0.2);
+  border-color: var(--pokedex-red);
+}
+
+/* Secondary — anime blue */
+.anime-btn-secondary {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: white;
+  border: 2px solid #1E40AF;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3),
+              inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.anime-btn-secondary:hover {
+  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.45);
+}
+
+/* ============================================================================
+   POKÉBALL DECORATIVE SHAPES
+   ============================================================================ */
+
+.pokeball-deco {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.pokeball-deco::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: currentColor;
+  transform: translateY(-50%);
+}
+
+.pokeball-deco::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.dark .pokeball-deco {
+  opacity: 0.05;
+}
+
+/* ============================================================================
+   PARTICLE BACKGROUND
+   ============================================================================ */
+
+.particle-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-bg::before,
+.particle-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.04;
+  animation: float 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.particle-bg::before {
+  width: 300px;
+  height: 300px;
+  background: var(--pokedex-red);
+  top: -50px;
+  right: -50px;
+}
+
+.particle-bg::after {
+  width: 200px;
+  height: 200px;
+  background: var(--accent-secondary);
+  bottom: -30px;
+  left: -30px;
+  animation-delay: 3s;
+}
+
+.dark .particle-bg::before,
+.dark .particle-bg::after {
+  opacity: 0.08;
+}
+
+/* ============================================================================
+   TYPE ENERGY INDICATOR — colored stripe on cards
+   ============================================================================ */
+
+.type-stripe-top {
+  position: relative;
+}
+
+.type-stripe-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--type-color, var(--pokedex-red));
+  opacity: 0.8;
+}
+
+/* ============================================================================
+   FORM ELEMENTS
+   ============================================================================ */
+
 input, textarea, select {
-  @apply rounded-lg border border-gray-200 transition-colors duration-200;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color-bold);
+  border-radius: 0.75rem;
+  transition: all 0.25s ease;
 }
 
 input:focus, textarea:focus, select:focus {
-  @apply border-primary-500 outline-none ring-2 ring-primary-50;
+  outline: none;
+  border-color: var(--pokedex-red);
+  box-shadow: 0 0 0 3px rgba(var(--glow-color), 0.1),
+              0 0 15px rgba(var(--glow-color), calc(var(--glow-intensity) * 0.15));
 }
 
-/* Custom scrollbar */
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   CUSTOM SCROLLBAR
+   ============================================================================ */
+
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded-full;
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-600;
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Card style */
-.card {
-  @apply bg-white rounded-xl shadow-md border border-gray-200 p-6 transition-all duration-200 hover:shadow-lg;
-}
+/* ============================================================================
+   LOADING / SPINNER
+   ============================================================================ */
 
-/* Button resets and utilities */
-button {
-  @apply transition-all duration-150 font-medium;
-}
-
-button:active {
-  @apply transform scale-[0.98];
-}
-
-/* Loading animation */
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .spinner {
   animation: spin 1s linear infinite;
 }
 
-/* Fade animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-20px); }
 }
 
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+@keyframes glowPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  body {
-    @apply bg-gray-950 text-gray-100;
-  }
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
 
-  input, textarea, select {
-    @apply bg-gray-900 border-gray-700;
-  }
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 
-  .card {
-    @apply bg-gray-900 border-gray-700;
-  }
+@keyframes slideUp {
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  0%   { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounceGentle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+/* Diagonal anime-style background stripes */
+@keyframes diagonalStripe {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: slideUp 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(n+11) { animation-delay: 0.55s; }
+
+/* ============================================================================
+   SELECTION
+   ============================================================================ */
+
+::selection {
+  background: rgba(var(--glow-color), 0.25);
+  color: var(--text-primary);
 }

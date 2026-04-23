@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const token = extractTokenFromHeader(req.headers.get('Authorization'));
+    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
     
     // Parse pagination params
     const validation = TeamListSchema.safeParse({
@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Check authentication
-    const token = extractTokenFromHeader(req.headers.get('Authorization'));
+    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
     if (!token) {
       return NextResponse.json(
         {
@@ -159,26 +159,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, description, format, pokemonIds } = validation.data;
-
-    // Check if all Pokémon exist
-    const pokemonCheck = await query(
-      'SELECT COUNT(*) as count FROM pokemon WHERE id = ANY($1)',
-      [pokemonIds]
-    );
-
-    if (pokemonCheck.rows[0].count !== pokemonIds.length) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_POKEMON',
-            message: 'One or more Pokémon do not exist',
-          },
-        },
-        { status: 400 }
-      );
-    }
-
     const teamId = uuidv4();
 
     // Create team
