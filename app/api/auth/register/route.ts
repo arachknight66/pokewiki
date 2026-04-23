@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: { code: 'REGISTRATION_ERROR', message: 'Registration failed' },
+        error: { code: 'REGISTRATION_ERROR', message: 'Registration failed: ' + ((error as any).message || 'Unknown error') },
       },
       { status: 500 }
     );
