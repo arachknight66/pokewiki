@@ -11,107 +11,55 @@ import { User, Pokemon, Team, ForumThread, Tournament } from '@/lib/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+import { signIn, signOut, useSession } from 'next-auth/react';
+
 // ============================================================================
 // AUTHENTICATION HOOKS
 // ============================================================================
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await axios.get('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.data.success) {
-          setUser(response.data.data);
-          setError(null);
-        }
-      } catch (err) {
-        // Token invalid or expired — clear it
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const isLoading = status === 'loading';
 
   const login = useCallback(async (email: string, password: string) => {
     try {
       setError(null);
-      setIsLoading(true);
-      const response = await axios.post('/api/auth/login', {
+      const res = await signIn('credentials', {
+        redirect: false,
         email,
         password,
       });
 
-      if (response.data.success) {
-        const { user: userData, tokens } = response.data.data;
-        localStorage.setItem('accessToken', tokens.accessToken);
-        localStorage.setItem('refreshToken', tokens.refreshToken);
-        setUser(userData);
-        return response.data.data;
+      if (res?.error) {
+        setError('Invalid email or password');
+        throw new Error('Invalid credentials');
       }
+      return true;
     } catch (err: any) {
-      const message = err.response?.data?.error?.message || 'Login failed';
-      setError(message);
+      setError('Login failed. Check your credentials.');
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await axios.post('/api/auth/logout').catch(() => {});
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      setUser(null);
-      setError(null);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-    }
+    await signOut({ redirect: false });
   }, []);
 
   const refreshAccessToken = useCallback(async (): Promise<boolean> => {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        return false;
-      }
-
-      const response = await axios.post('/api/auth/refresh', {
-        refreshToken,
-      });
-
-      if (response.data.success) {
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
-        return true;
-      }
-    } catch (err) {
-      console.error('Token refresh failed:', err);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setUser(null);
-    }
-    return false;
+    // NextAuth handles token refresh automatically through the session provider if configured
+    return true;
   }, []);
+
+  const user = session?.user ? {
+    id: (session.user as any).id,
+    email: session.user.email,
+    username: session.user.name || 'Trainer',
+    // Add stub properties that might be expected by the UI for now
+    preferences: { theme: 'light', notifications: true },
+    avatarUrl: (session.user as any).image || null,
+    createdAt: new Date().toISOString(),
+  } : null;
 
   return { user, isLoading, error, login, logout, refreshAccessToken };
 }

@@ -1,11 +1,8 @@
-/**
- * API Route: Forum Threads - List and Create
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { CreateThreadSchema } from '@/lib/validators';
-import { getThreads, createThread } from '@/lib/forum-store';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,11 +11,22 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     
-    const threads = getThreads(category);
+    const threads = await prisma.forumThread.findMany({
+      where: category ? { category } : undefined,
+      orderBy: { created_at: 'desc' },
+      include: {
+        user: { select: { username: true } }
+      }
+    });
+
+    const mappedThreads = threads.map((t: any) => ({
+      ...t,
+      username: t.user.username,
+    }));
     
     return NextResponse.json({
       success: true,
-      data: threads
+      data: mappedThreads
     });
   } catch (error) {
     console.error('Forum list error:', error);
@@ -31,21 +39,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
-    if (!token) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Auth required' } },
         { status: 401 }
       );
     }
-    
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid session' } },
-        { status: 401 }
-      );
-    }
+    const userId = (session.user as any).id;
     
     const body = await req.json();
     const validation = CreateThreadSchema.safeParse(body);
@@ -59,11 +60,26 @@ export async function POST(req: NextRequest) {
     
     const { title, body: threadBody, category } = validation.data;
     
-    const thread = createThread(decoded.userId, category, title, threadBody);
+    const thread = await prisma.forumThread.create({
+      data: {
+        user_id: userId,
+        category,
+        title,
+        body: threadBody,
+      },
+      include: {
+         user: { select: { username: true } }
+      }
+    });
+
+    const mappedThread = {
+      ...thread,
+      username: thread.user.username
+    };
     
     return NextResponse.json({
       success: true,
-      data: thread
+      data: mappedThread
     }, { status: 201 });
   } catch (error) {
     console.error('Forum create error:', error);

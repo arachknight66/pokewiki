@@ -1,11 +1,8 @@
-/**
- * API Route: Forum Thread Detail - Get Details and Add Replies
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { CreateReplySchema } from '@/lib/validators';
-import { getThreadById, getRepliesForThread, createReply } from '@/lib/forum-store';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +13,13 @@ export async function GET(
   try {
     const threadId = params.id;
     
-    const thread = getThreadById(threadId);
+    const thread = await prisma.forumThread.findUnique({
+      where: { id: threadId },
+      include: {
+        user: { select: { username: true } },
+      }
+    });
+
     if (!thread) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Thread not found' } },
@@ -24,13 +27,35 @@ export async function GET(
       );
     }
     
-    const replies = getRepliesForThread(threadId);
+    // Also increment view count
+    await prisma.forumThread.update({
+      where: { id: threadId },
+      data: { views: { increment: 1 } }
+    });
+    
+    const replies = await prisma.forumReply.findMany({
+      where: { thread_id: threadId },
+      orderBy: { created_at: 'asc' },
+      include: {
+        user: { select: { username: true } },
+      }
+    });
+
+    const mappedThread = {
+      ...thread,
+      username: thread.user.username,
+    };
+
+    const mappedReplies = replies.map((r: any) => ({
+      ...r,
+      username: r.user.username,
+    }));
     
     return NextResponse.json({
       success: true,
       data: {
-        thread,
-        replies
+        thread: mappedThread,
+        replies: mappedReplies
       }
     });
   } catch (error) {
@@ -48,23 +73,16 @@ export async function POST(
 ) {
   try {
     const threadId = params.id;
-    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
+    const session = await getServerSession(authOptions);
     
-    if (!token) {
+    if (!session?.user) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Login required to reply' } },
         { status: 401 }
       );
     }
     
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired' } },
-        { status: 401 }
-      );
-    }
-    
+    const userId = (session.user as any).id;
     const body = await req.json();
     const validation = CreateReplySchema.safeParse(body);
     
@@ -75,11 +93,37 @@ export async function POST(
       );
     }
     
-    const reply = createReply(threadId, decoded.userId, validation.data.body);
+    const reply = await prisma.$transaction(async (tx) => {
+      const newReply = await tx.forumReply.create({
+        data: {
+          thread_id: threadId,
+          user_id: userId,
+          body: validation.data.body,
+        },
+        include: {
+           user: { select: { username: true } },
+        }
+      });
+
+      await tx.forumThread.update({
+        where: { id: threadId },
+        data: { 
+          replies_count: { increment: 1 },
+          updated_at: new Date()
+        }
+      });
+      
+      return newReply;
+    });
+
+    const mappedReply = {
+      ...reply,
+      username: reply.user.username
+    };
     
     return NextResponse.json({
       success: true,
-      data: reply
+      data: mappedReply
     }, { status: 201 });
   } catch (error) {
     console.error('Forum reply error:', error);

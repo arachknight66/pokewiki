@@ -4,7 +4,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { extractTokenFromHeader, verifyToken } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { CreateTeamSchema, TeamListSchema } from '@/lib/validators';
 import { Team } from '@/lib/types';
 import { rateTeam } from '@/lib/rating-engine';
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
+    const session = await getServerSession(authOptions);
     
     // Parse pagination params
     const validation = TeamListSchema.safeParse({
@@ -47,12 +48,9 @@ export async function GET(req: NextRequest) {
     let params: any[] = [];
 
     // If authenticated, include user's own teams
-    if (token) {
-      const decoded = verifyToken(token);
-      if (decoded) {
-        whereClause = `is_public = true OR user_id = $1`;
-        params = [decoded.userId];
-      }
+    if (session?.user) {
+      whereClause = `is_public = true OR user_id = $1`;
+      params = [(session.user as any).id];
     }
 
     const sortColumn = sortBy === 'rating' ? 'rating_score' : sortBy === 'name' ? 'name' : 'created_at';
@@ -121,23 +119,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Check authentication
-    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
-    if (!token) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
       return NextResponse.json(
         {
           success: false,
           error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-        },
-        { status: 401 }
-      );
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: 'INVALID_TOKEN', message: 'Invalid or expired token' },
         },
         { status: 401 }
       );
@@ -168,7 +155,7 @@ export async function POST(req: NextRequest) {
       `INSERT INTO teams (id, user_id, name, description, format, pokemon_ids)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [teamId, decoded.userId, name, description || null, format, pokemonIds]
+      [teamId, (session.user as any).id, name, description || null, format, pokemonIds]
     );
 
     const team = result.rows[0];

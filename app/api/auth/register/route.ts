@@ -1,18 +1,7 @@
-/**
- * API Route: Authentication - Register
- * Uses local JSON file store instead of PostgreSQL.
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { hashPassword, createAuthTokens } from '@/lib/auth';
 import { RegisterSchema } from '@/lib/validators';
-import {
-  findUserByEmail,
-  findUserByUsername,
-  createUser,
-  storeRefreshTokenLocal,
-} from '@/lib/user-store';
-import { User } from '@/lib/types';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +28,8 @@ export async function POST(req: NextRequest) {
     const { email, username, password } = validation.data;
 
     // Check if email already exists
-    if (findUserByEmail(email)) {
+    const existingEmail = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (existingEmail) {
       return NextResponse.json(
         {
           success: false,
@@ -50,7 +40,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if username already exists
-    if (findUserByUsername(username)) {
+    const existingUsername = await prisma.user.findUnique({ where: { username } });
+    if (existingUsername) {
       return NextResponse.json(
         {
           success: false,
@@ -61,25 +52,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Hash password & create user
-    const passwordHash = await hashPassword(password);
-    const user = createUser({ email, username, passwordHash });
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(password, salt);
+    
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        username,
+        password_hash: passwordHash,
+      }
+    });
 
-    // Create tokens
-    const tokens = createAuthTokens({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      preferences: user.preferences,
-      emailVerified: false,
-      isActive: true,
-      createdAt: new Date(user.created_at),
-    } as User);
-
-    // Store refresh token
-    await storeRefreshTokenLocal(user.id, tokens.refreshToken);
-
-    // Create response
-    const response = NextResponse.json(
+    // Create response (do not return JWT, client will use next-auth to sign in)
+    return NextResponse.json(
       {
         success: true,
         data: {
@@ -87,32 +72,12 @@ export async function POST(req: NextRequest) {
             id: user.id,
             email: user.email,
             username: user.username,
-            preferences: user.preferences,
           },
-          tokens,
         },
       },
       { status: 201 }
     );
 
-    // Set cookies
-    response.cookies.set('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 86400,
-      path: '/',
-    });
-
-    response.cookies.set('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 604800,
-      path: '/',
-    });
-
-    return response;
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
