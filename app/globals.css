@@ -102,6 +102,26 @@ body {
   transition: background-color 0.4s ease, color 0.3s ease;
 }
 
+/* Dot-grid background pattern */
+.bg-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    var(--text-primary) 0.8px,
+    transparent 0.8px
+  );
+  background-size: 28px 28px;
+  opacity: 0.035;
+  transition: opacity 0.4s ease;
+}
+
+.dark .bg-pattern {
+  opacity: 0.06;
+}
+
 /* ============================================================================
    TYPOGRAPHY — Anime Title Card Style
    ============================================================================ */
@@ -984,6 +1004,140 @@ input::placeholder, textarea::placeholder {
 @keyframes typewriterBlink {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0; }
+}
+
+/* ============================================================================
+   HERO / LANDING PAGE
+   ============================================================================ */
+
+/* Title accent — shimmer on the "Wiki" text */
+.hero-title-accent {
+  color: var(--pokedex-red);
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    var(--pokedex-red) 0%,
+    var(--accent-gold) 45%,
+    var(--pokedex-red) 55%,
+    var(--pokedex-red) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: heroShimmer 6s ease-in-out infinite;
+}
+
+/* Hero buttons — shared base */
+.hero-btn {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+  border: 3px solid var(--text-primary);
+  box-shadow: 4px 4px 0px var(--text-primary);
+  cursor: pointer;
+}
+
+.hero-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 6px 6px 0px var(--text-primary);
+}
+
+.hero-btn:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 0px var(--text-primary);
+}
+
+.hero-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hero-btn-primary {
+  background: var(--pokedex-red);
+  color: #fff;
+}
+
+.hero-btn-primary:hover {
+  background: var(--pokedex-red-dark);
+}
+
+.hero-btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.hero-btn-secondary:hover {
+  background: var(--bg-card-hover);
+}
+
+/* Dark mode button shadow */
+.dark .hero-btn {
+  box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.15);
+}
+
+.dark .hero-btn:hover {
+  box-shadow: 6px 6px 0px rgba(255, 255, 255, 0.2);
+}
+
+.dark .hero-btn:active {
+  box-shadow: 2px 2px 0px rgba(255, 255, 255, 0.1);
+}
+
+/* Feature cards */
+.hero-feature-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 3px solid var(--border-color-bold);
+  border-radius: 0.875rem;
+  padding: 1.75rem 1.25rem 1.5rem;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.2, 0.6, 0.2, 1);
+  cursor: pointer;
+}
+
+.hero-feature-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-4px);
+  border-color: var(--text-primary);
+  box-shadow: 4px 4px 0px var(--text-primary);
+}
+
+.dark .hero-feature-card:hover {
+  box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.15);
+}
+
+/* Hero entrance animations */
+@keyframes heroPokeballIn {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes pokeballHover {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-6px) rotate(3deg); }
+  75%      { transform: translateY(2px) rotate(-2deg); }
+}
+
+@keyframes heroTitleIn {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroActionsIn {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes heroFeaturesIn {
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
 }
 
 /* ============================================================================

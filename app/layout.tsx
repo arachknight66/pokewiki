@@ -47,27 +47,8 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans min-h-screen transition-colors duration-300">
-        {/* Animated background decorations */}
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-          {/* Floating gradient orbs */}
-          <div
-            className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-[0.04] dark:opacity-[0.08] animate-float-slow"
-            style={{ background: 'radial-gradient(circle, var(--pokedex-red), transparent 70%)' }}
-          />
-          <div
-            className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full opacity-[0.04] dark:opacity-[0.08] animate-float-delayed"
-            style={{ background: 'radial-gradient(circle, var(--accent-secondary), transparent 70%)' }}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-[0.01] dark:opacity-[0.02] animate-pulse"
-            style={{ background: 'radial-gradient(circle, var(--accent-gold), transparent 70%)' }}
-          />
-
-          {/* Pokéball decorations */}
-          <div className="pokeball-deco top-20 left-[8%] animate-float text-red-500/20" />
-          <div className="pokeball-deco bottom-40 right-[12%] animate-float-delayed text-blue-500/20" style={{ width: '100px', height: '100px' }} />
-          <div className="pokeball-deco top-[65%] left-[4%] animate-float-slow text-yellow-500/20" style={{ width: '70px', height: '70px' }} />
-        </div>
+        {/* Background pattern */}
+        <div className="bg-pattern" />
 
         <div className="min-h-screen flex flex-col relative">
           <Providers>

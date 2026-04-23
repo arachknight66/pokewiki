@@ -1,178 +1,170 @@
 /**
- * Homepage — Pokémon Anime-inspired with adventure theme
+ * Homepage — Polished anime-inspired landing
  */
 
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+const FEATURES = [
+  {
+    label: 'Pokédex',
+    detail: '1000+ Pokémon catalogued with stats, abilities & sprites',
+    icon: '📖',
+    href: '/pokemon',
+    color: 'var(--pokedex-red)',
+  },
+  {
+    label: 'Team Builder',
+    detail: 'Craft the perfect squad & analyze type coverage',
+    icon: '⚔️',
+    href: '/team-builder',
+    color: 'var(--accent-secondary)',
+  },
+  {
+    label: 'Forum',
+    detail: 'Discuss strategies, share discoveries & connect',
+    icon: '💬',
+    href: '/forum',
+    color: 'var(--accent-gold)',
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="space-y-16 stagger-children">
-      {/* Hero Section — "Your journey begins" */}
-      <section className="relative text-center space-y-8 py-20 lg:py-32 rounded-[2rem] overflow-hidden"
-        style={{
-          background: 'var(--bg-card)',
-          border: '4px solid var(--text-primary)',
-          boxShadow: '12px 12px 0px var(--text-primary)',
-        }}>
-        {/* Flat geometric background elements */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-10 left-10 w-32 h-32 border-4" style={{ borderColor: 'var(--pokedex-red)', transform: 'rotate(15deg)' }} />
-          <div className="absolute bottom-10 right-10 w-48 h-48 border-4" style={{ borderColor: 'var(--accent-secondary)', transform: 'rotate(-10deg)' }} />
-          
-          {/* Flat speed lines */}
-          <div className="absolute inset-0" style={{
-            background: 'repeating-linear-gradient(-45deg, transparent 0px, transparent 80px, var(--border-color-bold) 80px, var(--border-color-bold) 84px)',
-            opacity: 0.1
-          }} />
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-          {/* Big pokéball watermark */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-5">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-current">
-              <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="3" />
-              <line x1="2" y1="50" x2="38" y2="50" stroke="currentColor" strokeWidth="3" />
-              <line x1="62" y1="50" x2="98" y2="50" stroke="currentColor" strokeWidth="3" />
-              <circle cx="50" cy="50" r="12" fill="none" stroke="currentColor" strokeWidth="3" />
-              <circle cx="50" cy="50" r="6" fill="currentColor" />
-            </svg>
-          </div>
+  return (
+    <div
+      className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]"
+      style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease' }}
+    >
+      {/* Hero */}
+      <section className="w-full max-w-3xl mx-auto text-center space-y-10 py-12 lg:py-20">
+
+        {/* Pokéball mark — animated */}
+        <div
+          className="mx-auto w-20 h-20 lg:w-24 lg:h-24"
+          style={{
+            animation: 'heroPokeballIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards, pokeballHover 4s ease-in-out 1.2s infinite',
+            opacity: 0,
+          }}
+        >
+          <svg viewBox="0 0 100 100" className="w-full h-full" style={{ color: 'var(--pokedex-red)' }}>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
+            <line x1="4" y1="50" x2="36" y2="50" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
+            <line x1="64" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
+            <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" strokeWidth="3.5" opacity="0.35" />
+            <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.5" />
+          </svg>
         </div>
 
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 text-xs font-black tracking-widest uppercase mb-8"
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '3px solid var(--text-primary)',
-              boxShadow: '4px 4px 0px var(--text-primary)',
-              color: 'var(--pokedex-red)',
-            }}>
-            YOUR POKÉMON JOURNEY STARTS HERE
-          </div>
-
-          <h1 className="text-6xl lg:text-8xl font-black font-display leading-[1.1] pb-2 drop-shadow-2xl">
-            <span className="anime-heading block">PokéWiki</span>
+        {/* Title */}
+        <div
+          style={{
+            animation: 'heroTitleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards',
+            opacity: 0,
+          }}
+        >
+          <h1 className="text-7xl lg:text-9xl font-black font-display leading-none tracking-tight">
+            Poké<span className="hero-title-accent">Wiki</span>
           </h1>
-
-          <p className="text-xl lg:text-2xl max-w-2xl mx-auto mt-6 leading-relaxed font-medium"
-            style={{ color: 'var(--text-secondary)' }}>
-            Your ultimate companion for every Pokémon adventure —
-            explore the complete Pokédex, master type matchups, and build championship teams
+          <p
+            className="mt-6 text-lg lg:text-xl max-w-md mx-auto leading-relaxed"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            Explore every Pokémon. Build your dream team.
+            <br />
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9em' }}>Your journey starts here.</span>
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-5 justify-center pt-8 relative z-10 w-full max-w-2xl mx-auto px-4">
+        {/* Primary Actions */}
+        <div
+          className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+          style={{
+            animation: 'heroActionsIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards',
+            opacity: 0,
+          }}
+        >
           <Link href="/pokemon" className="flex-1">
-            <button className="auth-submit-btn auth-submit-btn-red text-xl py-5 rounded-2xl w-full shadow-2xl flex items-center justify-center gap-3">
-              <span className="text-2xl drop-shadow-lg">📖</span>
-              Open Pokédex
+            <button
+              className="hero-btn hero-btn-primary w-full px-8 py-4 text-sm font-black uppercase tracking-widest"
+            >
+              <span className="hero-btn-content">
+                <svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor" style={{ opacity: 0.7 }}>
+                  <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="8" />
+                  <line x1="4" y1="50" x2="36" y2="50" stroke="currentColor" strokeWidth="8" />
+                  <line x1="64" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="12" fill="currentColor" />
+                </svg>
+                Open Pokédex
+              </span>
             </button>
           </Link>
           <Link href="/team-builder" className="flex-1">
-            <button className="auth-submit-btn auth-submit-btn-blue text-xl py-5 rounded-2xl w-full shadow-2xl flex items-center justify-center gap-3">
-              <span className="text-2xl drop-shadow-lg">⚔️</span>
-              Build a Team
+            <button
+              className="hero-btn hero-btn-secondary w-full px-8 py-4 text-sm font-black uppercase tracking-widest"
+            >
+              <span className="hero-btn-content">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M12 2L15 8.5L22 9.5L17 14.5L18 21.5L12 18.5L6 21.5L7 14.5L2 9.5L9 8.5Z" />
+                </svg>
+                Build a Team
+              </span>
             </button>
           </Link>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section>
-        <div className="text-center mb-10">
-          <h2 className="text-3xl lg:text-4xl font-black font-display mb-3">
-            Every Trainer&apos;s Toolkit
-          </h2>
-          <p style={{ color: 'var(--text-secondary)' }} className="text-lg">
-            Everything you need to become a Pokémon Master
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
-          {features.map((feature, i) => (
-            <div
-              key={feature.id}
-              className="glass-card-glow p-6 group hover:-translate-y-1 transition-all duration-300 energy-burst type-stripe-top"
-              style={{ '--type-color': feature.accentColor } as React.CSSProperties}
-            >
-              <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6 inline-block">
-                {feature.icon}
+      {/* Feature cards */}
+      <section
+        className="w-full max-w-3xl mx-auto mt-4 mb-8"
+        style={{
+          animation: 'heroFeaturesIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards',
+          opacity: 0,
+        }}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {FEATURES.map((item) => (
+            <Link key={item.label} href={item.href as any}>
+              <div className="hero-feature-card group">
+                {/* Color accent stripe */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-1 rounded-t-xl transition-all duration-300 group-hover:h-1.5"
+                  style={{ background: item.color }}
+                />
+                <span className="text-3xl block mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1">
+                  {item.icon}
+                </span>
+                <span
+                  className="text-[10px] font-black uppercase tracking-[0.2em] block"
+                  style={{ color: item.color }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className="text-xs block mt-2 leading-relaxed"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {item.detail}
+                </span>
+                {/* Arrow indicator */}
+                <span
+                  className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-70 group-hover:translate-y-0"
+                  style={{ color: item.color }}
+                >
+                  Explore
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </span>
               </div>
-              <h3 className="text-lg font-extrabold font-display mb-2">{feature.title}</h3>
-              <p style={{ color: 'var(--text-secondary)' }} className="text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
+            </Link>
           ))}
         </div>
-      </section>
-
-      {/* CTA Section — "Choose your starter" energy */}
-      <section className="relative rounded-3xl overflow-hidden p-10 lg:p-16 text-center pokedex-panel">
-        <div className="absolute inset-0 -z-10 opacity-[0.03] dark:opacity-[0.06] pointer-events-none"
-          style={{
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(var(--glow-color),0.1) 20px, rgba(var(--glow-color),0.1) 21px)',
-            animation: 'diagonalStripe 2s linear infinite',
-          }}
-        />
-
-        <h2 className="text-3xl lg:text-4xl font-black font-display mb-4">
-          <span className="anime-heading">Gotta catch &apos;em all!</span>
-        </h2>
-        <p className="text-lg mb-8 max-w-xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-          Dive into the world of Pokémon — browse every species, study their strengths,
-          and forge the ultimate team
-        </p>
-        <Link
-          href="/pokemon"
-          className="anime-btn anime-btn-primary px-10 py-4 text-lg rounded-2xl inline-flex items-center gap-2.5"
-        >
-          Start Exploring
-          <span className="text-xl">→</span>
-        </Link>
       </section>
     </div>
   );
 }
-
-const features = [
-  {
-    id: 1,
-    icon: '📖',
-    title: 'Complete Pokédex',
-    description: 'Every Pokémon from Gen I to IX — official artwork, game sprites, animated Showdown sprites, and shiny variants.',
-    accentColor: '#DC2626',
-  },
-  {
-    id: 2,
-    icon: '⚔️',
-    title: 'Team Builder',
-    description: 'Build competitive teams with real-time type coverage analysis, role balance scoring, and synergy evaluation.',
-    accentColor: '#2563EB',
-  },
-  {
-    id: 3,
-    icon: '📊',
-    title: 'Battle Analytics',
-    description: 'Detailed stat breakdowns, type effectiveness charts, and competitive tier data to sharpen your strategy.',
-    accentColor: '#059669',
-  },
-  {
-    id: 4,
-    icon: '✨',
-    title: 'Sprite Gallery',
-    description: 'Switch between official artwork, 3D Home renders, animated Showdown sprites, and classic 2D — including shinies.',
-    accentColor: '#F59E0B',
-  },
-  {
-    id: 5,
-    icon: '🔍',
-    title: 'Smart Filters',
-    description: 'Search by name, filter by type or generation, and sort to find exactly the Pokémon you need.',
-    accentColor: '#8B5CF6',
-  },
-  {
-    id: 6,
-    icon: '⚡',
-    title: 'Lightning Fast',
-    description: 'Built on Next.js with intelligent caching — Pokémon data loads instantly, pages feel native-smooth.',
-    accentColor: '#EC4899',
-  },
-];
