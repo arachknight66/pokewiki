@@ -3,9 +3,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
 import { CreateReplySchema } from '@/lib/validators';
+import { getThreadById, getRepliesForThread, createReply } from '@/lib/forum-store';
 
 export async function GET(
   req: NextRequest,
@@ -14,30 +14,21 @@ export async function GET(
   try {
     const threadId = params.id;
     
-    // 1. Fetch thread info
-    const threadResult = await query(
-      'SELECT * FROM forum_threads WHERE id = $1',
-      [threadId]
-    );
-    
-    if (threadResult.rows.length === 0) {
+    const thread = getThreadById(threadId);
+    if (!thread) {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Thread not found' } },
         { status: 404 }
       );
     }
     
-    // 2. Fetch replies
-    const repliesResult = await query(
-      'SELECT * FROM forum_replies WHERE thread_id = $1 ORDER BY created_at ASC',
-      [threadId]
-    );
+    const replies = getRepliesForThread(threadId);
     
     return NextResponse.json({
       success: true,
       data: {
-        thread: threadResult.rows[0],
-        replies: repliesResult.rows
+        thread,
+        replies
       }
     });
   } catch (error) {
@@ -82,16 +73,11 @@ export async function POST(
       );
     }
     
-    const result = await query(
-      `INSERT INTO forum_replies (thread_id, user_id, body)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
-      [threadId, decoded.userId, validation.data.body]
-    );
+    const reply = createReply(threadId, decoded.userId, validation.data.body);
     
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: reply
     }, { status: 201 });
   } catch (error) {
     console.error('Forum reply error:', error);

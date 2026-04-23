@@ -38,32 +38,32 @@
   --accent-gold:       #F59E0B;
   --accent-gradient:   linear-gradient(135deg, #DC2626, #F59E0B, #2563EB);
 
-  --glow-intensity:  0.25;
+  --glow-intensity:  0;
   --glow-color:      220, 38, 38;
 
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 30px rgba(220, 38, 38, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card: 4px 4px 0px rgba(0, 0, 0, 1);
+  --shadow-card-hover: 6px 6px 0px rgba(0, 0, 0, 1);
 
   --scrollbar-track: #f0ebe3;
-  --scrollbar-thumb: #c4b8a8;
-  --scrollbar-thumb-hover: #a0937f;
+  --scrollbar-thumb: #1a1a2e;
+  --scrollbar-thumb-hover: #DC2626;
 }
 
 .dark {
   /* Dark mode — anime nighttime/cave/Team Rocket vibes */
   --bg-primary:      #0f0f1a;
   --bg-secondary:    #1a1a2e;
-  --bg-card:         rgba(26, 26, 46, 0.8);
-  --bg-card-hover:   rgba(36, 36, 66, 0.9);
+  --bg-card:         #1a1a2e;
+  --bg-card-hover:   #242442;
   --bg-input:        #1a1a2e;
-  --bg-nav:          rgba(15, 15, 26, 0.9);
+  --bg-nav:          #0f0f1a;
 
   --text-primary:    #f0f0f5;
   --text-secondary:  #a0a0b8;
   --text-muted:      #6a6a88;
 
-  --border-color:      rgba(255, 255, 255, 0.06);
-  --border-color-bold: rgba(255, 255, 255, 0.1);
+  --border-color:      #ffffff;
+  --border-color-bold: #ffffff;
 
   --pokedex-red:       #EF4444;
   --pokedex-red-light: #FCA5A5;
@@ -72,13 +72,13 @@
   --accent-primary:    #EF4444;
   --accent-secondary:  #3B82F6;
   --accent-gold:       #F59E0B;
-  --accent-gradient:   linear-gradient(135deg, #EF4444, #F59E0B, #3B82F6);
+  --accent-gradient:   #EF4444; /* Replaced gradient with solid */
 
-  --glow-intensity:  0.45;
+  --glow-intensity:  0;
   --glow-color:      239, 68, 68;
 
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-card-hover: 0 8px 30px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-card: 4px 4px 0px rgba(255, 255, 255, 0.2);
+  --shadow-card-hover: 6px 6px 0px rgba(255, 255, 255, 0.3);
 
   --scrollbar-track: #1a1a2e;
   --scrollbar-thumb: #2a2a48;
@@ -129,17 +129,13 @@ a {
    ============================================================================ */
 
 .anime-heading {
-  background: linear-gradient(135deg, var(--pokedex-red), var(--accent-gold), var(--accent-secondary));
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 5s ease infinite;
+  color: var(--pokedex-red);
   font-weight: 900;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 1), 4px 4px 0px rgba(var(--glow-color), 0.2);
 }
 
 .dark .anime-heading {
-  filter: brightness(1.15);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.2), 4px 4px 0px rgba(var(--glow-color), 0.2);
 }
 
 /* ============================================================================
@@ -148,64 +144,34 @@ a {
 
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 2px solid var(--border-color);
+  border: 3px solid var(--text-primary);
   border-radius: 1rem;
   box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
 }
 
 .glass-card:hover {
   background: var(--bg-card-hover);
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(var(--glow-color), 0.25);
+  transform: translateY(-2px);
 }
 
 .glass-card-glow {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 2px solid var(--border-color);
+  border: 3px solid var(--pokedex-red);
   border-radius: 1rem;
   box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.glass-card-glow::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  padding: 2px;
-  background: linear-gradient(135deg, transparent, rgba(var(--glow-color), 0.2), transparent, rgba(var(--glow-color), 0.1));
-  background-size: 300% 300%;
-  animation: gradientShift 4s ease infinite;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.glass-card-glow:hover::before {
-  opacity: 1;
-}
-
 .glass-card-glow:hover {
   box-shadow: var(--shadow-card-hover);
-  border-color: rgba(var(--glow-color), 0.3);
+  transform: translateY(-2px);
 }
 
 .glass-nav {
   background: var(--bg-nav);
-  backdrop-filter: blur(20px) saturate(1.5);
-  -webkit-backdrop-filter: blur(20px) saturate(1.5);
-  border-bottom: 2px solid var(--border-color);
-  transition: background 0.4s ease, border-color 0.3s ease;
+  border-bottom: 3px solid var(--text-primary);
 }
 
 /* ============================================================================
@@ -214,12 +180,9 @@ a {
 
 .pokedex-panel {
   background: var(--bg-card);
-  border: 2px solid var(--pokedex-red);
+  border: 3px solid var(--pokedex-red);
   border-radius: 1rem;
-  box-shadow: 0 0 0 1px rgba(var(--glow-color), 0.05),
-              inset 0 1px 0 rgba(255,255,255,0.1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 4px 4px 0px var(--pokedex-red-dark);
 }
 
 .pokedex-panel::before {
@@ -228,10 +191,8 @@ a {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--pokedex-red), var(--accent-gold), var(--pokedex-red));
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
+  height: 6px;
+  background: var(--pokedex-red-dark);
 }
 
 /* ============================================================================
@@ -275,23 +236,27 @@ a {
   overflow: hidden;
 }
 
+.energy-burst {
+  position: relative;
+  overflow: hidden;
+}
+
 .energy-burst::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, rgba(var(--glow-color), 0.15), transparent 70%);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease, height 0.5s ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--pokedex-red);
+  opacity: 0;
+  transition: opacity 0.5s ease;
   pointer-events: none;
+  z-index: 1;
 }
 
 .energy-burst:hover::after {
-  width: 200%;
-  height: 200%;
+  opacity: 0.05;
 }
 
 /* ============================================================================
@@ -314,24 +279,11 @@ a {
 }
 
 .stat-bar-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
-  border-radius: inherit;
+  display: none;
 }
 
 .dark .stat-bar-fill::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
+  display: none;
 }
 
 /* ============================================================================
@@ -345,23 +297,7 @@ a {
   transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
   overflow: hidden;
   letter-spacing: 0.01em;
-}
-
-.anime-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.anime-btn:hover::before {
-  opacity: 1;
+  transform: translateY(0);
 }
 
 .anime-btn:hover {
@@ -369,35 +305,33 @@ a {
 }
 
 .anime-btn:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0);
 }
 
 /* Primary — Pokédex red */
 .anime-btn-primary {
-  background: linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark));
+  background: var(--pokedex-red);
   color: white;
-  border: 2px solid var(--pokedex-red-dark);
-  box-shadow: 0 4px 15px rgba(var(--glow-color), 0.3),
-              inset 0 1px 0 rgba(255,255,255,0.15);
+  border: 3px solid var(--text-primary);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
 }
 
 .anime-btn-primary:hover {
-  box-shadow: 0 6px 25px rgba(var(--glow-color), 0.45),
-              inset 0 1px 0 rgba(255,255,255,0.2);
-  border-color: var(--pokedex-red);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+  background: var(--pokedex-red-dark);
 }
 
 /* Secondary — anime blue */
 .anime-btn-secondary {
-  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  background: #2563EB;
   color: white;
-  border: 2px solid #1E40AF;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3),
-              inset 0 1px 0 rgba(255,255,255,0.15);
+  border: 3px solid var(--text-primary);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
 }
 
 .anime-btn-secondary:hover {
-  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.45);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+  background: #1D4ED8;
 }
 
 /* ============================================================================
@@ -448,38 +382,39 @@ a {
 .particle-bg {
   position: relative;
   overflow: hidden;
+  background: var(--bg-card);
 }
 
 .particle-bg::before,
 .particle-bg::after {
   content: '';
   position: absolute;
-  border-radius: 50%;
-  opacity: 0.04;
-  animation: float 8s ease-in-out infinite;
+  opacity: 0.1;
   pointer-events: none;
+  border: 4px solid var(--text-primary);
 }
 
 .particle-bg::before {
-  width: 300px;
-  height: 300px;
+  width: 150px;
+  height: 150px;
   background: var(--pokedex-red);
-  top: -50px;
-  right: -50px;
+  top: -20px;
+  right: -20px;
+  transform: rotate(15deg);
 }
 
 .particle-bg::after {
-  width: 200px;
-  height: 200px;
+  width: 100px;
+  height: 100px;
   background: var(--accent-secondary);
-  bottom: -30px;
-  left: -30px;
-  animation-delay: 3s;
+  bottom: 10px;
+  left: 10px;
+  transform: rotate(-10deg);
 }
 
 .dark .particle-bg::before,
 .dark .particle-bg::after {
-  opacity: 0.08;
+  opacity: 0.3;
 }
 
 /* ============================================================================
@@ -517,8 +452,7 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--pokedex-red);
-  box-shadow: 0 0 0 3px rgba(var(--glow-color), 0.1),
-              0 0 15px rgba(var(--glow-color), calc(var(--glow-intensity) * 0.15));
+  box-shadow: 4px 4px 0px var(--pokedex-red);
 }
 
 input::placeholder, textarea::placeholder {
@@ -632,6 +566,425 @@ input::placeholder, textarea::placeholder {
 .stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
 .stagger-children > *:nth-child(10) { animation-delay: 0.5s; }
 .stagger-children > *:nth-child(n+11) { animation-delay: 0.55s; }
+
+/* ============================================================================
+   AUTH PAGE — ANIME CINEMATIC STYLES
+   ============================================================================ */
+
+/* Full-screen solid geometric background for auth pages */
+.auth-scene {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+}
+
+.auth-scene::before {
+  content: '';
+  position: absolute;
+  top: -10vw;
+  left: -10vw;
+  width: 50vw;
+  height: 50vw;
+  background: var(--pokedex-red);
+  opacity: 0.05;
+  border: 10px solid var(--text-primary);
+  transform: rotate(45deg);
+}
+
+.auth-scene::after {
+  content: '';
+  position: absolute;
+  bottom: -15vw;
+  right: -5vw;
+  width: 60vw;
+  height: 60vw;
+  background: var(--accent-secondary);
+  opacity: 0.05;
+  border: 10px solid var(--text-primary);
+  transform: rotate(-30deg);
+}
+
+.dark .auth-scene::before, .dark .auth-scene::after {
+  opacity: 0.15;
+}
+
+/* Auth components stripped of glowing */
+.auth-pokeball {
+  display: none;
+}
+
+/* Floating flat rectangles */
+.plasma-orb {
+  position: absolute;
+  pointer-events: none;
+  border: 4px solid var(--text-primary);
+}
+
+.plasma-orb-red {
+  width: 150px;
+  height: 150px;
+  background: var(--pokedex-red);
+  opacity: 0.15;
+  top: 15%;
+  left: 10%;
+  transform: rotate(20deg);
+}
+
+.plasma-orb-blue {
+  width: 120px;
+  height: 120px;
+  background: var(--accent-secondary);
+  opacity: 0.15;
+  bottom: 20%;
+  right: 8%;
+  transform: rotate(-15deg);
+}
+
+.plasma-orb-gold {
+  width: 90px;
+  height: 90px;
+  background: var(--accent-gold);
+  opacity: 0.15;
+  top: 60%;
+  left: 60%;
+  transform: rotate(40deg);
+}
+
+.dark .plasma-orb-red { opacity: 0.3; }
+.dark .plasma-orb-blue { opacity: 0.3; }
+.dark .plasma-orb-gold { opacity: 0.3; }
+
+/* The main auth card — flat premium */
+.auth-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 4px solid var(--text-primary);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 12px 12px 0px var(--text-primary);
+  animation: cardEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.dark .auth-card {
+  box-shadow: 12px 12px 0px rgba(0, 0, 0, 1);
+}
+
+/* Auth card top stripe */
+.auth-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--pokedex-red);
+}
+
+/* Auth card inner elements */
+.auth-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--pokedex-red);
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.auth-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0;
+  animation: fadeSlideUp 0.6s 0.3s ease forwards;
+}
+
+/* Animated input fields */
+.auth-input-group {
+  position: relative;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s ease forwards;
+}
+
+.auth-input-group:nth-child(1) { animation-delay: 0.15s; }
+.auth-input-group:nth-child(2) { animation-delay: 0.25s; }
+.auth-input-group:nth-child(3) { animation-delay: 0.35s; }
+.auth-input-group:nth-child(4) { animation-delay: 0.45s; }
+
+.auth-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.auth-input-wrapper {
+  position: relative;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  opacity: 0.35;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--bg-input);
+  border: 2px solid var(--border-color-bold);
+  color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+  position: relative;
+}
+
+.auth-input:focus {
+  border-color: var(--pokedex-red);
+  box-shadow: 4px 4px 0px var(--pokedex-red-light);
+  outline: none;
+}
+
+.auth-input:focus + .auth-input-glow,
+.auth-input:focus ~ .auth-input-icon {
+  opacity: 1;
+}
+
+/* Flat line under focused input */
+.auth-input-glow {
+  display: none;
+}
+
+/* Submit button flat style */
+.auth-submit-btn {
+  position: relative;
+  width: 100%;
+  padding: 1.1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  border-radius: 1rem;
+  color: white;
+  border: 4px solid var(--text-primary);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+  opacity: 0;
+  animation: fadeSlideUp 0.5s 0.5s ease forwards;
+}
+
+.auth-submit-btn-red {
+  background: var(--pokedex-red);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+}
+
+.auth-submit-btn-blue {
+  background: var(--accent-secondary);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+}
+
+.auth-submit-btn:hover {
+  transform: translateY(-2px);
+}
+
+.auth-submit-btn-red:hover {
+  background: var(--pokedex-red-dark);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+}
+
+.auth-submit-btn-blue:hover {
+  background: var(--accent-secondary);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+}
+
+.auth-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Error alert with shake */
+.auth-error {
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: shakeError 0.5s ease;
+}
+
+.auth-error .error-icon {
+  font-size: 1.2rem;
+  animation: electricPulse 1.5s ease infinite;
+}
+
+/* Divider line */
+.auth-divider {
+  border-top: 2px solid var(--border-color);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  text-align: center;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s 0.6s ease forwards;
+}
+
+/* Success flash for registered=true */
+.auth-success {
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 2px solid rgba(16, 185, 129, 0.25);
+  color: #10B981;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: successPop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Floating flat particles */
+.electric-particle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--text-primary);
+  pointer-events: none;
+  animation: electricFloat 3s linear infinite;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.electric-particle:nth-child(1) { top: 20%; left: 5%; animation-delay: 0s; transform: rotate(15deg); }
+.electric-particle:nth-child(2) { top: 60%; right: 8%; animation-delay: 0.8s; transform: rotate(45deg); }
+.electric-particle:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 1.6s; transform: rotate(70deg); }
+.electric-particle:nth-child(4) { top: 40%; right: 20%; animation-delay: 2.4s; transform: rotate(10deg); }
+.electric-particle:nth-child(5) { bottom: 15%; right: 30%; animation-delay: 0.4s; transform: rotate(30deg); }
+.electric-particle:nth-child(6) { top: 10%; left: 40%; animation-delay: 1.2s; transform: rotate(80deg); }
+
+/* Password strength indicator */
+.password-strength {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+
+.password-strength-bar {
+  height: 3px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--border-color-bold);
+  transition: all 0.4s cubic-bezier(0.2, 0.6, 0.2, 1);
+  overflow: hidden;
+}
+
+.password-strength-bar.active {
+  animation: strengthFill 0.4s ease forwards;
+}
+
+.password-strength-bar.weak { background: #EF4444; }
+.password-strength-bar.medium { background: #F59E0B; }
+.password-strength-bar.strong { background: #10B981; }
+.password-strength-bar.ultra { background: #6366F1; }
+
+/* ============================================================================
+   AUTH PAGE ANIMATIONS
+   ============================================================================ */
+
+@keyframes authBgPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.8; transform: scale(1.02); }
+}
+
+@keyframes authSpeedLines {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+@keyframes pokeballSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes plasmaFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(30px, -20px) scale(1.1); }
+  66%      { transform: translate(-20px, 15px) scale(0.9); }
+}
+
+@keyframes cardEntrance {
+  0%   { opacity: 0; transform: translateY(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes borderGlow {
+  0%, 100% { background-position: 0% 50%; }
+  25%      { background-position: 100% 50%; }
+  50%      { background-position: 100% 100%; }
+  75%      { background-position: 0% 100%; }
+}
+
+@keyframes fadeSlideUp {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-6px); }
+  30%, 70% { transform: translateX(6px); }
+}
+
+@keyframes electricPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.3); }
+}
+
+@keyframes successPop {
+  0%   { opacity: 0; transform: scale(0.8); }
+  50%  { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes electricFloat {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
+  20%      { opacity: 0.8; transform: translateY(-10px) scale(1); }
+  50%      { opacity: 0.6; transform: translateY(-25px) scale(0.8); }
+  80%      { opacity: 0.2; transform: translateY(-40px) scale(0.4); }
+}
+
+@keyframes strengthFill {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+
+@keyframes typewriterBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
 
 /* ============================================================================
    SELECTION

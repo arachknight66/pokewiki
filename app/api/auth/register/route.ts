@@ -1,11 +1,17 @@
 /**
  * API Route: Authentication - Register
+ * Uses local JSON file store instead of PostgreSQL.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { hashPassword, createAuthTokens } from '@/lib/auth';
 import { RegisterSchema } from '@/lib/validators';
+import {
+  findUserByEmail,
+  findUserByUsername,
+  createUser,
+  storeRefreshTokenLocal,
+} from '@/lib/user-store';
 import { User } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
@@ -31,12 +37,7 @@ export async function POST(req: NextRequest) {
     const { email, username, password } = validation.data;
 
     // Check if email already exists
-    const existingEmail = await query(
-      'SELECT id FROM users WHERE email = $1',
-      [email.toLowerCase()]
-    );
-
-    if (existingEmail.rows.length > 0) {
+    if (findUserByEmail(email)) {
       return NextResponse.json(
         {
           success: false,
@@ -47,12 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if username already exists
-    const existingUsername = await query(
-      'SELECT id FROM users WHERE username = $1',
-      [username.toLowerCase()]
-    );
-
-    if (existingUsername.rows.length > 0) {
+    if (findUserByUsername(username)) {
       return NextResponse.json(
         {
           success: false,
@@ -62,23 +58,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash password
+    // Hash password & create user
     const passwordHash = await hashPassword(password);
-
-    // Create user
-    const result = await query(
-      `INSERT INTO users (email, username, password_hash, preferences)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, email, username, preferences, created_at`,
-      [
-        email.toLowerCase(),
-        username,
-        passwordHash,
-        JSON.stringify({ theme: 'light', notifications: true }),
-      ]
-    );
-
-    const user = result.rows[0];
+    const user = createUser({ email, username, passwordHash });
 
     // Create tokens
     const tokens = createAuthTokens({
@@ -88,8 +70,11 @@ export async function POST(req: NextRequest) {
       preferences: user.preferences,
       emailVerified: false,
       isActive: true,
-      createdAt: user.created_at,
+      createdAt: new Date(user.created_at),
     } as User);
+
+    // Store refresh token
+    await storeRefreshTokenLocal(user.id, tokens.refreshToken);
 
     // Create response
     const response = NextResponse.json(
@@ -112,7 +97,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 86400,
       path: '/',
     });
@@ -120,7 +105,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 604800,
       path: '/',
     });

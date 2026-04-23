@@ -1,21 +1,46 @@
 /**
- * Login Page — Pokémon Anime-inspired
+ * Login Page — Pokémon Anime Cinematic Experience
+ * Full-screen animated scene with floating Pokéballs, plasma orbs,
+ * electric particles, energy-glow inputs, and shimmer effects.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+/* ── Inline SVG Pokéball ─────────────────────────────────────────────── */
+function PokeballSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className}>
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="5" />
+      <line x1="4" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="5" />
+      <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" strokeWidth="5" />
+      <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.3" />
+    </svg>
+  );
+}
+
+/* ── Password Strength Helper ────────────────────────────────────────── */
+function getPasswordStrength(pw: string): number {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[!@#$%^&*]/.test(pw)) s++;
+  return s;
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get('registered') === 'true';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,96 +53,162 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4 stagger-children">
-      <Card className="w-full max-w-md relative overflow-hidden pokedex-panel">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-           <svg width="60" height="60" viewBox="0 0 100 100">
-             <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8"/>
-             <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="8"/>
-             <circle cx="50" cy="50" r="15" fill="white" stroke="currentColor" strokeWidth="8"/>
-           </svg>
-        </div>
+    <div className="auth-scene">
+      {/* ── Animated background elements ────────────────────────── */}
+      <div className="plasma-orb plasma-orb-red" />
+      <div className="plasma-orb plasma-orb-blue" />
+      <div className="plasma-orb plasma-orb-gold" />
 
+      {/* Spinning Pokéballs */}
+      <div className="auth-pokeball auth-pokeball-1" style={{ color: 'var(--pokedex-red)' }}>
+        <PokeballSVG />
+      </div>
+      <div className="auth-pokeball auth-pokeball-2" style={{ color: 'var(--accent-secondary)' }}>
+        <PokeballSVG />
+      </div>
+      <div className="auth-pokeball auth-pokeball-3" style={{ color: 'var(--accent-gold)' }}>
+        <PokeballSVG />
+      </div>
+
+      {/* Electric particles */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="electric-particle" />
+      ))}
+
+      {/* ── Main Card ───────────────────────────────────────────── */}
+      <div className="auth-card">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black font-display mb-2">
-            <span className="anime-heading text-4xl">Trainer Login</span>
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Resume your journey through the world of Pokémon
-          </p>
+          {/* Animated Pokéball icon */}
+          <div className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(180deg, var(--pokedex-red) 0%, var(--pokedex-red) 45%, var(--text-primary) 45%, var(--text-primary) 55%, var(--bg-card) 55%)',
+              border: '3px solid var(--text-primary)',
+              boxShadow: '4px 4px 0px var(--text-primary)',
+              animation: 'bounceGentle 3s ease-in-out infinite',
+              opacity: 0,
+              animationFillMode: 'forwards',
+            }}>
+            <div className="w-4 h-4 rounded-full border-2 border-[var(--text-primary)] bg-white" />
+          </div>
+          <h1 className="auth-title mb-2">Trainer Login</h1>
+          <p className="auth-subtitle">Resume your journey through the world of Pokémon</p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border-2 border-red-500/20 text-red-500 text-xs font-bold">
-             ⚡ {error}
+        {/* Success banner (after registration) */}
+        {justRegistered && (
+          <div className="auth-success mb-6">
+            <span style={{ fontSize: '1.2rem' }}>✨</span>
+            Registration complete! Sign in with your new credentials.
           </div>
         )}
 
+        {/* Error banner */}
+        {error && (
+          <div className="auth-error mb-6">
+            <span className="error-icon">⚡</span>
+            {error}
+          </div>
+        )}
+
+        {/* ── Form ──────────────────────────────────────────────── */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">✉️</span>
+          {/* Email */}
+          <div className="auth-input-group">
+            <label className="auth-label">Email Address</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">✉️</span>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ash.ketchum@kanto.com"
-                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+                className="auth-input"
+                id="login-email"
               />
+              <div className="auth-input-glow" />
             </div>
           </div>
 
-          <div>
-            <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
-              Secret Password
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">🔑</span>
+          {/* Password */}
+          <div className="auth-input-group" style={{ animationDelay: '0.25s' }}>
+            <label className="auth-label">Secret Password</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">🔑</span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+                className="auth-input"
+                style={{ paddingRight: '3rem' }}
+                id="login-password"
               />
+              <div className="auth-input-glow" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-100 transition-opacity z-10"
+                tabIndex={-1}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
-             <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" className="w-4 h-4 rounded border-2 border-[var(--border-color-bold)] bg-transparent checked:bg-[var(--pokedex-red)] transition-all" />
-                <span className="text-[11px] font-bold opacity-60 group-hover:opacity-100 transition-opacity">Remember Me</span>
-             </label>
-             <button type="button" className="text-[11px] font-black text-[var(--pokedex-red)] hover:underline">
-                Lost your badge?
-             </button>
+          {/* Remember + Forgot */}
+          <div className="flex items-center justify-between auth-input-group" style={{ animationDelay: '0.35s' }}>
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                className="w-4 h-4 rounded border-2 border-[var(--border-color-bold)] bg-transparent accent-[var(--pokedex-red)] transition-all"
+              />
+              <span className="text-[11px] font-bold opacity-60 group-hover:opacity-100 transition-opacity">
+                Remember Me
+              </span>
+            </label>
+            <button type="button" className="text-[11px] font-black text-[var(--pokedex-red)] hover:underline transition-all hover:brightness-125">
+              Lost your badge?
+            </button>
           </div>
 
-          <Button
+          {/* Submit Button */}
+          <button
             type="submit"
-            isLoading={isLoading}
-            className="w-full py-4 text-lg mt-4 shadow-xl"
-            size="lg"
+            disabled={isLoading}
+            className="auth-submit-btn auth-submit-btn-red disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            id="login-submit"
           >
-            Sign Into Pokédex
-          </Button>
+            {isLoading ? (
+              <span className="inline-flex items-center gap-3">
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full spinner" />
+                Authenticating...
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                <span style={{ fontSize: '1.2rem' }}>⚡</span>
+                Sign Into Pokédex
+              </span>
+            )}
+          </button>
         </form>
 
-        <div className="mt-8 text-center pt-6 border-t-2 border-[var(--border-color)]">
-           <p className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-              New to the region?{' '}
-              <Link href="/register" className="text-[var(--pokedex-red)] font-black hover:underline">
-                Register as a Trainer
-              </Link>
-           </p>
+        {/* ── Footer ────────────────────────────────────────────── */}
+        <div className="auth-divider">
+          <p className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+            New to the region?{' '}
+            <Link
+              href="/register"
+              className="font-black transition-all hover:brightness-125"
+              style={{ color: 'var(--pokedex-red)' }}
+            >
+              Register as a Trainer →
+            </Link>
+          </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

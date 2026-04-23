@@ -1,37 +1,65 @@
 /**
- * Register Page — Pokémon Anime-inspired
+ * Register Page — Pokémon Anime Cinematic Experience
+ * Full-screen animated scene with floating Pokéballs, plasma orbs,
+ * electric particles, password strength meter, and energy-glow inputs.
  */
 
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/hooks';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+
+/* ── Inline SVG Pokéball ─────────────────────────────────────────────── */
+function PokeballSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className}>
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="5" />
+      <line x1="4" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="5" />
+      <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" strokeWidth="5" />
+      <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.3" />
+    </svg>
+  );
+}
+
+/* ── Password Strength ───────────────────────────────────────────────── */
+function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[!@#$%^&*]/.test(pw)) s++;
+
+  const labels = ['', 'Weak', 'Fair', 'Strong', 'Ultra 💎'];
+  const colors = ['', '#EF4444', '#F59E0B', '#10B981', '#6366F1'];
+  return { score: s, label: labels[s] || '', color: colors[s] || '' };
+}
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const router = useRouter();
- 
+
+  const strength = useMemo(() => getPasswordStrength(password), [password]);
+  const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setLocalError(null);
-    
+
     if (password !== confirmPassword) {
       setLocalError('Passwords do not match');
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const response = await axios.post('/api/auth/register', {
         username,
@@ -39,7 +67,7 @@ export default function RegisterPage() {
         password,
         confirmPassword,
       });
-      
+
       if (response.data.success) {
         const { tokens } = response.data.data;
         localStorage.setItem('accessToken', tokens.accessToken);
@@ -49,7 +77,6 @@ export default function RegisterPage() {
       console.error(err);
       const data = err.response?.data;
       if (data?.error?.code === 'VALIDATION_ERROR' && data.error.details) {
-        // Flatten validation errors into a string
         const details = data.error.details;
         const firstError = Object.values(details)[0] as string[];
         setLocalError(firstError[0] || 'Validation failed');
@@ -62,129 +89,231 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4 stagger-children">
-      <Card className="w-full max-w-md relative overflow-hidden pokedex-panel">
-        {/* Background animation for register */}
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-[0.05] animate-float text-[var(--accent-secondary)]">
-           <svg viewBox="0 0 100 100" className="w-full h-full"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+    <div className="auth-scene">
+      {/* ── Animated background elements ────────────────────────── */}
+      <div className="plasma-orb plasma-orb-red" style={{ top: '25%', left: '70%' }} />
+      <div className="plasma-orb plasma-orb-blue" style={{ bottom: '10%', left: '5%' }} />
+      <div className="plasma-orb plasma-orb-gold" style={{ top: '10%', left: '20%' }} />
+
+      {/* Spinning Pokéballs */}
+      <div className="auth-pokeball auth-pokeball-1" style={{ color: 'var(--accent-secondary)' }}>
+        <PokeballSVG />
+      </div>
+      <div className="auth-pokeball auth-pokeball-2" style={{ color: 'var(--pokedex-red)' }}>
+        <PokeballSVG />
+      </div>
+      <div className="auth-pokeball auth-pokeball-3" style={{ color: 'var(--accent-gold)' }}>
+        <PokeballSVG />
+      </div>
+
+      {/* Electric particles */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="electric-particle" />
+      ))}
+
+      {/* ── Main Card ───────────────────────────────────────────── */}
+      <div className="auth-card" style={{ maxWidth: '520px' }}>
+        {/* Header */}
+        <div className="text-center mb-7">
+          {/* Animated star / badge icon */}
+          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'var(--accent-secondary)',
+              border: '3px solid var(--text-primary)',
+              boxShadow: '4px 4px 0px var(--text-primary)',
+              animation: 'bounceGentle 3s ease-in-out infinite',
+            }}>
+            <span style={{ fontSize: '1.75rem', filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))' }}>⭐</span>
+          </div>
+          <h1 className="auth-title mb-2" style={{ fontSize: '2.25rem' }}>Trainer License</h1>
+          <p className="auth-subtitle">Begin your new adventure today</p>
         </div>
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-black font-display mb-2">
-            <span className="anime-heading text-4xl">Trainer License</span>
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Start your new adventure today
-          </p>
-        </div>
-
+        {/* Error banner */}
         {localError && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border-2 border-red-500/20 text-red-500 text-xs font-bold">
-             ⚡ {localError}
+          <div className="auth-error mb-5">
+            <span className="error-icon">⚡</span>
+            {localError}
           </div>
         )}
 
+        {/* ── Form ──────────────────────────────────────────────── */}
         <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-              Trainer Name
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">🧢</span>
+          {/* Username */}
+          <div className="auth-input-group">
+            <label className="auth-label">Trainer Name</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">🧢</span>
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="eg. Red"
-                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+                className="auth-input"
+                id="register-username"
               />
+              <div className="auth-input-glow" />
             </div>
           </div>
 
-          <div>
-            <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-              Email Contact
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">✉️</span>
+          {/* Email */}
+          <div className="auth-input-group" style={{ animationDelay: '0.25s' }}>
+            <label className="auth-label">Email Contact</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">✉️</span>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="trainer@kanto.org"
-                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+                className="auth-input"
+                id="register-email"
               />
+              <div className="auth-input-glow" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                Security Password
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">🛡️</span>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 chars"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
-                />
+          {/* Password */}
+          <div className="auth-input-group" style={{ animationDelay: '0.35s' }}>
+            <label className="auth-label">Security Password</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">🛡️</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 8 characters"
+                className="auth-input"
+                style={{ paddingRight: '3rem' }}
+                id="register-password"
+              />
+              <div className="auth-input-glow" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-100 transition-opacity z-10"
+                tabIndex={-1}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
+
+            {/* Password strength meter */}
+            {password.length > 0 && (
+              <div className="mt-2">
+                <div className="password-strength">
+                  {[1, 2, 3, 4].map((level) => (
+                    <div
+                      key={level}
+                      className={`password-strength-bar ${strength.score >= level ? 'active' : ''}`}
+                      style={{
+                        background: strength.score >= level ? strength.color : undefined,
+                        transition: 'all 0.4s ease',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold mt-1 transition-all" style={{ color: strength.color }}>
+                  {strength.label}
+                </p>
               </div>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="auth-input-group" style={{ animationDelay: '0.45s' }}>
+            <label className="auth-label">Confirm Secret</label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">🔒</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat password"
+                className="auth-input"
+                style={{
+                  borderColor: !passwordsMatch ? '#EF4444' : undefined,
+                  boxShadow: !passwordsMatch ? '0 0 0 3px rgba(239,68,68,0.1)' : undefined,
+                }}
+                id="register-confirm-password"
+              />
+              <div className="auth-input-glow" />
+              {confirmPassword.length > 0 && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base transition-all z-10">
+                  {passwordsMatch ? '✅' : '❌'}
+                </span>
+              )}
             </div>
-            <div>
-              <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                Confirm Secret
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">🔒</span>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat code"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl text-sm"
-                />
-              </div>
+          </div>
+
+          {/* Hints */}
+          <div className="auth-input-group" style={{ animationDelay: '0.5s' }}>
+            <div className="flex flex-wrap gap-2 justify-center mt-1">
+              {[
+                { label: '8+ chars', met: password.length >= 8 },
+                { label: 'Uppercase', met: /[A-Z]/.test(password) },
+                { label: 'Number', met: /\d/.test(password) },
+                { label: 'Special', met: /[!@#$%^&*]/.test(password) },
+              ].map((req) => (
+                <span
+                  key={req.label}
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all duration-300"
+                  style={{
+                    borderColor: req.met ? '#10B981' : 'var(--border-color)',
+                    color: req.met ? '#10B981' : 'var(--text-muted)',
+                    background: req.met ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                  }}
+                >
+                  {req.met ? '✓' : '○'} {req.label}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="pt-1">
-            <p className="text-[10px] leading-tight text-center opacity-60" style={{ color: 'var(--text-muted)' }}>
-               Hint: Use at least one uppercase letter, one number, and one special character.
-            </p>
-          </div>
+          {/* Terms */}
+          <p className="text-[10px] leading-relaxed text-center opacity-50" style={{ color: 'var(--text-muted)' }}>
+            By registering, you agree to become a certified Pokémon Trainer and follow the League rules.
+          </p>
 
-          <div className="pt-2">
-            <p className="text-[10px] leading-relaxed text-center" style={{ color: 'var(--text-muted)' }}>
-               By registering, you agree to become a certified Pokémon Trainer and follow the League rules.
-            </p>
-          </div>
-
-          <Button
+          {/* Submit Button */}
+          <button
             type="submit"
-            isLoading={isLoading}
-            className="w-full py-4 text-lg mt-4 shadow-xl anime-btn-secondary border-blue-700 hover:shadow-blue-500/30"
-            size="lg"
+            disabled={isLoading}
+            className="auth-submit-btn auth-submit-btn-blue disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            id="register-submit"
           >
-            Obtain Trainer License
-          </Button>
+            {isLoading ? (
+              <span className="inline-flex items-center gap-3">
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full spinner" />
+                Creating License...
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                <span style={{ fontSize: '1.2rem' }}>⭐</span>
+                Obtain Trainer License
+              </span>
+            )}
+          </button>
         </form>
 
-        <div className="mt-8 text-center pt-6 border-t-2 border-[var(--border-color)]">
-           <p className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-              Already have a license?{' '}
-              <Link href="/login" className="text-[var(--accent-secondary)] font-black hover:underline">
-                Portal Login
-              </Link>
-           </p>
+        {/* ── Footer ────────────────────────────────────────────── */}
+        <div className="auth-divider">
+          <p className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
+            Already have a license?{' '}
+            <Link
+              href="/login"
+              className="font-black transition-all hover:brightness-125"
+              style={{ color: 'var(--accent-secondary)' }}
+            >
+              Portal Login →
+            </Link>
+          </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -1,15 +1,22 @@
 /**
  * API Route: Auth Me - Get current user profile
+ * Reads token from Authorization header OR httpOnly cookie.
+ * Uses local JSON file store instead of PostgreSQL.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { extractTokenFromHeader, verifyToken } from '@/lib/auth';
+import { findUserById } from '@/lib/user-store';
 
 export async function GET(req: NextRequest) {
   try {
-    const token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
-    
+    // Try Authorization header first, then fall back to cookie
+    let token = extractTokenFromHeader(req.headers.get('Authorization') || undefined);
+
+    if (!token) {
+      token = req.cookies.get('accessToken')?.value ?? null;
+    }
+
     if (!token) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Not logged in' } },
@@ -25,19 +32,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const result = await query(
-      'SELECT id, email, username, profile_bio, avatar_url, preferences, email_verified, is_active, created_at, last_login FROM users WHERE id = $1',
-      [decoded.userId]
-    );
+    const row = findUserById(decoded.userId);
 
-    if (result.rows.length === 0) {
+    if (!row) {
       return NextResponse.json(
         { success: false, error: { code: 'USER_NOT_FOUND', message: 'User no longer exists' } },
         { status: 404 }
       );
     }
 
-    const row = result.rows[0];
     const user = {
       id: row.id,
       email: row.email,

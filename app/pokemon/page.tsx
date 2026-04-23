@@ -80,96 +80,117 @@ export default function PokemonPage() {
         </p>
       </div>
 
-      {/* Filters — Pokédex panel style */}
-      <div className="pokedex-panel p-5 space-y-4">
-        {/* Search */}
-        <div>
-          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-            Search
-          </label>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search by name..."
-            className="w-full px-4 py-2.5 rounded-xl text-sm"
-          />
+      {/* Filters — Flat Pokédex panel style */}
+      <div 
+        className="pokedex-panel p-6 space-y-5 rounded-[1.5rem] relative overflow-hidden"
+      >
+        {/* Animated geometric background elements */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-32 h-32 border-4" style={{ borderColor: 'var(--pokedex-red)', transform: 'rotate(15deg)', opacity: 0.2 }} />
+          <div className="absolute bottom-[-10px] left-[-10px] w-48 h-48 border-4" style={{ borderColor: 'var(--accent-secondary)', transform: 'rotate(-45deg)', opacity: 0.1 }} />
+          <div className="absolute inset-0" style={{
+            background: 'repeating-linear-gradient(-45deg, transparent 0px, transparent 40px, var(--border-color) 40px, var(--border-color) 44px)',
+          }} />
         </div>
 
-        {/* Generation Filter */}
-        <div>
-          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-            Generation
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => { setSelectedGen(0); setPage(1); }}
-              className="px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200"
-              style={{
-                background: selectedGen === 0 ? 'linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark))' : 'var(--bg-secondary)',
-                color: selectedGen === 0 ? 'white' : 'var(--text-secondary)',
-                border: `2px solid ${selectedGen === 0 ? 'var(--pokedex-red-dark)' : 'var(--border-color)'}`,
-                boxShadow: selectedGen === 0 ? '0 2px 8px rgba(var(--glow-color), 0.25)' : 'none',
-              }}
-            >
-              All
-            </button>
-            {generations.map(gen => (
-              <button
-                key={gen.id}
-                onClick={() => { setSelectedGen(gen.id); setPage(1); }}
-                className="px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 group"
-                style={{
-                  background: selectedGen === gen.id ? 'linear-gradient(135deg, var(--accent-secondary), #1D4ED8)' : 'var(--bg-secondary)',
-                  color: selectedGen === gen.id ? 'white' : 'var(--text-secondary)',
-                  border: `2px solid ${selectedGen === gen.id ? '#1E40AF' : 'var(--border-color)'}`,
-                  boxShadow: selectedGen === gen.id ? '0 2px 8px rgba(37, 99, 235, 0.3)' : 'none',
-                }}
-                title={gen.region}
-              >
-                {gen.label}
-              </button>
-            ))}
+        <div className="relative z-10 space-y-5">
+          {/* Search */}
+          <div>
+            <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+              Search Pokémon
+            </label>
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">🔍</span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search by name..."
+                className="auth-input shadow-inner"
+              />
+              <div className="auth-input-glow" />
+            </div>
           </div>
-        </div>
 
-        {/* Type Filter */}
-        <div>
-          <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-            Type
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => { setSelectedType(''); setPage(1); }}
-              className="px-3 py-1.5 rounded-lg text-xs font-extrabold capitalize transition-all duration-200"
-              style={{
-                background: selectedType === '' ? 'linear-gradient(135deg, var(--pokedex-red), var(--pokedex-red-dark))' : 'var(--bg-secondary)',
-                color: selectedType === '' ? 'white' : 'var(--text-secondary)',
-                border: `2px solid ${selectedType === '' ? 'var(--pokedex-red-dark)' : 'var(--border-color)'}`,
-              }}
-            >
-              All
-            </button>
-            {types.map(type => {
-              const tc = TYPE_COLORS[type];
-              const isActive = selectedType === type;
-              return (
+          <div className="grid md:grid-cols-2 gap-5">
+            {/* Generation Filter */}
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                Generation
+              </label>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={type}
-                  onClick={() => { setSelectedType(type); setPage(1); }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-extrabold capitalize transition-all duration-200"
+                  onClick={() => { setSelectedGen(0); setPage(1); }}
+                  className="px-4 py-2 rounded-xl text-xs font-black transition-all duration-300"
                   style={{
-                    background: isActive ? tc : 'var(--bg-secondary)',
-                    color: isActive ? '#fff' : 'var(--text-secondary)',
-                    border: `2px solid ${isActive ? tc : 'var(--border-color)'}`,
-                    boxShadow: isActive ? `0 2px 10px ${tc}55` : 'none',
-                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                    background: selectedGen === 0 ? 'var(--pokedex-red)' : 'var(--bg-secondary)',
+                    color: selectedGen === 0 ? 'white' : 'var(--text-secondary)',
+                    border: `2px solid ${selectedGen === 0 ? 'var(--text-primary)' : 'var(--border-color)'}`,
+                    boxShadow: selectedGen === 0 ? '2px 2px 0px var(--text-primary)' : 'none',
+                    transform: selectedGen === 0 ? 'scale(1)' : 'scale(1)',
                   }}
                 >
-                  {type}
+                  All
                 </button>
-              );
-            })}
+                {generations.map(gen => (
+                  <button
+                    key={gen.id}
+                    onClick={() => { setSelectedGen(gen.id); setPage(1); }}
+                    className="px-4 py-2 rounded-xl text-xs font-black transition-all duration-300 group"
+                    style={{
+                      background: selectedGen === gen.id ? 'var(--accent-secondary)' : 'var(--bg-secondary)',
+                      color: selectedGen === gen.id ? 'white' : 'var(--text-secondary)',
+                      border: `2px solid ${selectedGen === gen.id ? 'var(--text-primary)' : 'var(--border-color)'}`,
+                      boxShadow: selectedGen === gen.id ? '2px 2px 0px var(--text-primary)' : 'none',
+                      transform: selectedGen === gen.id ? 'scale(1)' : 'scale(1)',
+                    }}
+                    title={gen.region}
+                  >
+                    {gen.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Type Filter */}
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                Type
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => { setSelectedType(''); setPage(1); }}
+                  className="px-4 py-2 rounded-xl text-xs font-black capitalize transition-all duration-300"
+                  style={{
+                    background: selectedType === '' ? 'var(--pokedex-red)' : 'var(--bg-secondary)',
+                    color: selectedType === '' ? 'white' : 'var(--text-secondary)',
+                    border: `2px solid ${selectedType === '' ? 'var(--text-primary)' : 'var(--border-color)'}`,
+                    boxShadow: selectedType === '' ? '2px 2px 0px var(--text-primary)' : 'none',
+                  }}
+                >
+                  All
+                </button>
+                {types.map(type => {
+                  const tc = TYPE_COLORS[type];
+                  const isActive = selectedType === type;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => { setSelectedType(type); setPage(1); }}
+                      className="px-4 py-2 rounded-xl text-xs font-black capitalize transition-all duration-300"
+                      style={{
+                        background: isActive ? tc : 'var(--bg-secondary)',
+                        color: isActive ? '#fff' : 'var(--text-secondary)',
+                        border: `2px solid ${isActive ? 'var(--text-primary)' : 'var(--border-color)'}`,
+                        boxShadow: isActive ? `2px 2px 0px var(--text-primary)` : 'none',
+                      }}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -193,30 +214,21 @@ export default function PokemonPage() {
               return (
                 <Link key={pokemon.id} href={`/pokemon/${pokemon.id}`}>
                   <div
-                    className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer energy-burst"
+                    className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer flat-card-hover"
                     style={{
                       background: 'var(--bg-card)',
-                      border: `2px solid rgba(${rgb}, 0.2)`,
-                      boxShadow: 'var(--shadow-card)',
-                      ['--glow-color' as any]: rgb,
+                      border: `3px solid var(--text-primary)`,
+                      boxShadow: '4px 4px 0px var(--text-primary)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = `0 8px 25px rgba(${rgb}, 0.2), 0 0 30px rgba(${rgb}, 0.08)`;
-                      e.currentTarget.style.borderColor = `rgba(${rgb}, 0.5)`;
+                      e.currentTarget.style.boxShadow = `6px 6px 0px var(--text-primary)`;
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = 'var(--shadow-card)';
-                      e.currentTarget.style.borderColor = `rgba(${rgb}, 0.2)`;
+                      e.currentTarget.style.boxShadow = '4px 4px 0px var(--text-primary)';
                     }}
                   >
                     {/* Type color stripe at top */}
-                    <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88)` }} />
-
-                    {/* Type gradient overlay */}
-                    <div
-                      className="absolute inset-0 opacity-[0.04] dark:opacity-[0.08] transition-opacity group-hover:opacity-[0.08] dark:group-hover:opacity-[0.14]"
-                      style={{ background: `linear-gradient(135deg, ${bgColor}44, transparent 60%)` }}
-                    />
+                    <div className="h-2 w-full" style={{ background: bgColor }} />
 
                     {/* Pokédex number watermark */}
                     <span className="absolute top-3 right-3 text-4xl font-black select-none opacity-[0.04] dark:opacity-[0.07] font-display">

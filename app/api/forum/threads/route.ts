@@ -3,30 +3,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
 import { CreateThreadSchema } from '@/lib/validators';
+import { getThreads, createThread } from '@/lib/forum-store';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     
-    let sql = 'SELECT * FROM forum_threads';
-    const params: any[] = [];
-    
-    if (category) {
-      sql += ' WHERE category = $1';
-      params.push(category);
-    }
-    
-    sql += ' ORDER BY created_at DESC';
-    
-    const result = await query(sql, params);
+    const threads = getThreads(category);
     
     return NextResponse.json({
       success: true,
-      data: result.rows
+      data: threads
     });
   } catch (error) {
     console.error('Forum list error:', error);
@@ -67,16 +57,11 @@ export async function POST(req: NextRequest) {
     
     const { title, body: threadBody, category } = validation.data;
     
-    const result = await query(
-      `INSERT INTO forum_threads (user_id, category, title, body)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [decoded.userId, category, title, threadBody]
-    );
+    const thread = createThread(decoded.userId, category, title, threadBody);
     
     return NextResponse.json({
       success: true,
-      data: result.rows[0]
+      data: thread
     }, { status: 201 });
   } catch (error) {
     console.error('Forum create error:', error);

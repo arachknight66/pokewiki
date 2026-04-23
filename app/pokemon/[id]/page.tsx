@@ -109,35 +109,60 @@ export default function PokemonDetailPage() {
         ← Back to Pokédex
       </Link>
 
-      {/* Hero — Pokédex panel style */}
+      {/* Hero — Flat Anime Card */}
       <div
-        className="rounded-3xl overflow-hidden relative particle-bg"
+        className="rounded-[2rem] overflow-hidden relative transition-all duration-300"
         style={{
           background: 'var(--bg-card)',
-          border: `2px solid rgba(${rgb}, 0.3)`,
+          border: `4px solid var(--text-primary)`,
+          boxShadow: `12px 12px 0px var(--text-primary)`,
         }}
       >
-        {/* Type color stripe at top */}
-        <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88, transparent)` }} />
+        {/* Animated Background layer - Flat Shapes */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-white/5 dark:bg-black/20">
+          <div
+            className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-20 border-8"
+            style={{ borderColor: bgColor, borderStyle: 'solid' }}
+          />
+          <div
+            className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] border-8 opacity-20 transform rotate-12"
+            style={{ borderColor: bgColor, borderStyle: 'solid' }}
+          />
 
-        {/* Floating gradient orbs */}
-        <div
-          className="absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-10 dark:opacity-20 animate-float-slow pointer-events-none"
-          style={{ backgroundColor: bgColor }}
-        />
+          {/* Electric particles themed to pokemon type - Flat Blocks */}
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="absolute w-4 h-4 border-2" style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `electricFloat 3s linear infinite`,
+              animationDelay: `${Math.random() * 3}s`,
+              background: bgColor,
+              borderColor: 'var(--text-primary)',
+              transform: `rotate(${Math.random() * 90}deg)`
+            }} />
+          ))}
+
+          {/* Speed lines */}
+          <div className="absolute inset-0" style={{
+            background: `repeating-linear-gradient(45deg, transparent 0px, transparent 40px, rgba(0,0,0, 0.05) 40px, rgba(0,0,0, 0.05) 44px)`,
+          }} />
+        </div>
+
+        {/* Type color stripe at top */}
+        <div className="h-1.5 w-full relative z-10" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88, transparent)` }} />
 
         <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-10 relative z-10">
           {/* Sprite Gallery */}
           <div className="flex flex-col items-center">
-            <div className="relative w-full max-w-xs aspect-square rounded-2xl flex items-center justify-center mb-5">
-              {/* Glow ring */}
+            <div className="relative w-full max-w-xs aspect-square rounded-2xl flex items-center justify-center mb-5 group">
+              {/* Solid geometric backdrop for pokemon */}
               <div
-                className="absolute inset-0 m-auto w-36 h-36 rounded-full blur-3xl opacity-20 dark:opacity-35 animate-glow-pulse"
-                style={{ backgroundColor: bgColor }}
+                className="absolute inset-0 m-auto w-40 h-40 rounded-full border-4 opacity-50 transition-transform duration-300 group-hover:scale-110"
+                style={{ backgroundColor: bgColor, borderColor: 'var(--text-primary)' }}
               />
 
               {/* Pokédex number watermark */}
-              <span className="absolute top-4 left-4 text-6xl font-black select-none opacity-[0.04] dark:opacity-[0.07] font-display">
+              <span className="absolute top-4 left-4 text-6xl font-black select-none opacity-[0.06] dark:opacity-[0.12] font-display">
                 #{String(pokemon.pokedexNumber).padStart(3, '0')}
               </span>
 
@@ -147,10 +172,10 @@ export default function PokemonDetailPage() {
                   alt={`${pokemon.name} ${spriteTab} ${showShiny ? 'shiny' : ''}`}
                   width={spriteTab === 'animated' ? 160 : 240}
                   height={spriteTab === 'animated' ? 160 : 240}
-                  className="relative z-10 drop-shadow-2xl transition-all duration-500 object-contain"
+                  className="relative z-10 transition-all duration-300 object-contain group-hover:-translate-y-2"
                   style={{
                     imageRendering: spriteTab === 'classic' || spriteTab === 'animated' ? 'pixelated' : 'auto',
-                    filter: showShiny ? 'drop-shadow(0 0 20px rgba(245, 158, 11, 0.4))' : undefined,
+                    filter: showShiny ? `drop-shadow(4px 4px 0px rgba(245, 158, 11, 1))` : `drop-shadow(4px 4px 0px rgba(0, 0, 0, 1))`,
                   }}
                   unoptimized
                 />
@@ -317,23 +342,50 @@ export default function PokemonDetailPage() {
             <span style={{ color: 'var(--accent-gold)' }}>⬣</span> Pokédex Entries
           </h2>
           <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-2">
-            {pokedexEntries.map((entry, idx) => (
-              <div
-                key={idx}
-                className="flex gap-3 p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1"
-                style={{ background: 'var(--bg-secondary)', border: '2px solid var(--border-color)' }}
-              >
-                <span
-                  className="shrink-0 px-3 py-1 h-fit rounded-lg text-[10px] font-extrabold uppercase tracking-wider text-white text-center min-w-[80px]"
-                  style={{ backgroundColor: bgColor, border: `1px solid ${bgColor}`, boxShadow: `0 2px 6px ${bgColor}33` }}
+            {pokedexEntries.map((entry, idx) => {
+              const gameKey = entry.game.toLowerCase();
+              const GAME_COLORS: Record<string, string> = {
+                red: '#FF1111', blue: '#1111FF', yellow: '#FFCC00',
+                gold: '#DAA520', silver: '#A0A0A0', crystal: '#4FD9E8',
+                ruby: '#A00000', sapphire: '#0000A0', emerald: '#00A000',
+                'firered': '#FF7327', 'leafgreen': '#00DD00',
+                diamond: '#AAAAFF', pearl: '#FFAAAA', platinum: '#999999',
+                'heartgold': '#B69E00', 'soulsilver': '#C0C0E1',
+                black: '#222222', white: '#D0D0D0',
+                'black 2': '#222222', 'white 2': '#D0D0D0',
+                x: '#025CE2', y: '#E40058',
+                'omega ruby': '#C40B24', 'alpha sapphire': '#08418A',
+                sun: '#F18E2C', moon: '#551A8B',
+                'ultra sun': '#E65100', 'ultra moon': '#283593',
+                'let\'s go pikachu': '#F4D23C', 'let\'s go eevee': '#C69400',
+                sword: '#00A1E9', shield: '#E3001B',
+                'brilliant diamond': '#79B7E3', 'shining pearl': '#E59EC7',
+                'legends arceus': '#23385B',
+                scarlet: '#E3332A', violet: '#754C93'
+              };
+              
+              const gameColor = GAME_COLORS[gameKey] || bgColor;
+              // If background is very light (like white), text should be dark
+              const isLight = ['white', 'white 2', 'silver'].includes(gameKey);
+
+              return (
+                <div
+                  key={idx}
+                  className="flex gap-3 p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1"
+                  style={{ background: 'var(--bg-secondary)', border: '2px solid var(--border-color)' }}
                 >
-                  {entry.game}
-                </span>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  {entry.text}
-                </p>
-              </div>
-            ))}
+                  <span
+                    className={`shrink-0 px-3 py-1 h-fit rounded-lg text-[10px] font-extrabold uppercase tracking-wider text-center min-w-[80px] ${isLight ? 'text-black' : 'text-white'}`}
+                    style={{ backgroundColor: gameColor, border: `2px solid var(--text-primary)`, boxShadow: `2px 2px 0px var(--text-primary)` }}
+                  >
+                    {entry.game}
+                  </span>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    {entry.text}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}

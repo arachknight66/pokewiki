@@ -24,14 +24,22 @@ export function useAuth() {
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await axios.get(`${API_URL}/api/auth/me`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await axios.get('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.success) {
           setUser(response.data.data);
+          setError(null);
         }
       } catch (err) {
-        // Not authenticated
+        // Token invalid or expired — clear it
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -43,33 +51,71 @@ export function useAuth() {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      setError(null);
+      setIsLoading(true);
+      const response = await axios.post('/api/auth/login', {
         email,
         password,
       });
 
       if (response.data.success) {
-        const { user, tokens } = response.data.data;
+        const { user: userData, tokens } = response.data.data;
         localStorage.setItem('accessToken', tokens.accessToken);
-        setUser(user);
+        localStorage.setItem('refreshToken', tokens.refreshToken);
+        setUser(userData);
         return response.data.data;
       }
     } catch (err: any) {
       const message = err.response?.data?.error?.message || 'Login failed';
       setError(message);
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('accessToken');
-    // Also remove cookies via a logout API call if needed
-    axios.post(`${API_URL}/api/auth/logout`).catch(() => {});
+  const logout = useCallback(async () => {
+    try {
+      await axios.post('/api/auth/logout').catch(() => {});
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      setError(null);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    }
   }, []);
 
-  return { user, isLoading, error, login, logout };
+  const refreshAccessToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return false;
+      }
+
+      const response = await axios.post('/api/auth/refresh', {
+        refreshToken,
+      });
+
+      if (response.data.success) {
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', newRefreshToken);
+        return true;
+      }
+    } catch (err) {
+      console.error('Token refresh failed:', err);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+    }
+    return false;
+  }, []);
+
+  return { user, isLoading, error, login, logout, refreshAccessToken };
 }
+
 
 // ============================================================================
 // POKÉMON HOOKS
@@ -79,7 +125,7 @@ export function usePokemon(id: number) {
   return useQuery({
     queryKey: ['pokemon', id],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/pokemon/${id}`);
+      const response = await axios.get(`/api/pokemon/${id}`);
       return response.data.data;
     },
     enabled: !!id,
@@ -106,7 +152,7 @@ export function usePokemonList({
         sortBy,
       });
 
-      const response = await axios.get(`${API_URL}/api/pokemon?${params}`);
+      const response = await axios.get(`/api/pokemon?${params}`);
       return response.data;
     },
   });
@@ -132,7 +178,7 @@ export function useTeams({
         sortOrder,
       });
 
-      const response = await axios.get(`${API_URL}/api/teams?${params}`);
+      const response = await axios.get(`/api/teams?${params}`);
       return response.data;
     },
   });
@@ -142,7 +188,7 @@ export function useTeam(id: string) {
   return useQuery({
     queryKey: ['team', id],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/teams/${id}`);
+      const response = await axios.get(`/api/teams/${id}`);
       return response.data.data;
     },
     enabled: !!id,
@@ -152,7 +198,7 @@ export function useTeam(id: string) {
 export function useCreateTeam() {
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await axios.post(`${API_URL}/api/teams`, data, {
+      const response = await axios.post(`/api/teams`, data, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -180,7 +226,7 @@ export function useForumThreads({
         ...(category && { category }),
       });
 
-      const response = await axios.get(`${API_URL}/api/forum/threads?${params}`);
+      const response = await axios.get(`/api/forum/threads?${params}`);
       return response.data;
     },
   });
@@ -190,7 +236,7 @@ export function useForumThread(id: string) {
   return useQuery({
     queryKey: ['forum-thread', id],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/forum/threads/${id}`);
+      const response = await axios.get(`/api/forum/threads/${id}`);
       return response.data.data;
     },
     enabled: !!id,

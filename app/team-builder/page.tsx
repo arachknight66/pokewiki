@@ -139,46 +139,65 @@ export default function TeamBuilderPage() {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Builder */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Team Info — Pokédex panel style */}
-          <div className="pokedex-panel p-6 space-y-4">
-            <h2 className="text-xl font-black font-display flex items-center gap-2">
-               <span style={{ color: 'var(--pokedex-red)' }}>⬣</span> Team Information
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                  Team Name
-                </label>
-                <input
-                  type="text"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="e.g., Kanto Champions"
-                  className="w-full px-4 py-2.5 rounded-xl text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-extrabold uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                  Battle Format
-                </label>
-                <select
-                  value={teamFormat}
-                  onChange={(e) => setTeamFormat(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl text-sm"
-                >
-                  <option value="OU">OU (Overused)</option>
-                  <option value="UU">UU (UnderUsed)</option>
-                  <option value="RU">RU (RarelyUsed)</option>
-                  <option value="Doubles">Doubles</option>
-                  <option value="LC">Little Cup</option>
-                  <option value="VGC">VGC</option>
-                </select>
+          {/* Team Info — Flat Pokédex panel style */}
+          <div 
+            className="pokedex-panel p-6 space-y-5 rounded-[1.5rem] relative overflow-hidden"
+          >
+            {/* Flat geometric background elements */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+              <div className="absolute top-[-10%] left-[-5%] w-32 h-32 border-4" style={{ borderColor: 'var(--accent-gold)', transform: 'rotate(20deg)', opacity: 0.2 }} />
+              <div className="absolute inset-0" style={{
+                background: 'repeating-linear-gradient(-45deg, transparent 0px, transparent 40px, var(--border-color) 40px, var(--border-color) 44px)',
+              }} />
+            </div>
+
+            <div className="relative z-10 space-y-5">
+              <h2 className="text-2xl font-black font-display flex items-center gap-3">
+                 <span style={{ color: 'var(--pokedex-red)' }}>⬣</span> Team Information
+              </h2>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Team Name
+                  </label>
+                  <div className="auth-input-wrapper">
+                    <input
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="e.g., Kanto Champions"
+                      className="auth-input shadow-inner !pl-4"
+                    />
+                    <div className="auth-input-glow" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Battle Format
+                  </label>
+                  <div className="auth-input-wrapper">
+                    <select
+                      value={teamFormat}
+                      onChange={(e) => setTeamFormat(e.target.value)}
+                      className="auth-input shadow-inner !pl-4 appearance-none"
+                    >
+                      <option value="OU">OU (Overused)</option>
+                      <option value="UU">UU (UnderUsed)</option>
+                      <option value="RU">RU (RarelyUsed)</option>
+                      <option value="Doubles">Doubles</option>
+                      <option value="LC">Little Cup</option>
+                      <option value="VGC">VGC</option>
+                    </select>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">▼</span>
+                    <div className="auth-input-glow" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Selected Pokémon — Team Party view */}
-          <Card className="energy-burst">
+          <Card>
             <h2 className="text-xl font-black font-display mb-5 flex items-center gap-2">
               <span style={{ color: 'var(--accent-secondary)' }}>⬣</span> Your Party
               <span className="ml-auto text-xs font-extrabold px-2 py-1 rounded-lg" style={{ background: 'var(--bg-secondary)', border: '2px solid var(--border-color)' }}>
@@ -195,24 +214,25 @@ export default function TeamBuilderPage() {
                 return (
                   <div
                     key={index}
-                    className="relative rounded-xl p-4 text-center transition-all duration-300 min-h-[130px] flex flex-col items-center justify-center speed-lines"
+                    className="relative rounded-xl p-4 text-center transition-all duration-300 min-h-[130px] flex flex-col items-center justify-center"
                     style={{
-                      background: poke ? `rgba(${rgb}, 0.08)` : 'var(--bg-secondary)',
-                      border: `2px solid ${poke ? `rgba(${rgb}, 0.3)` : 'var(--border-color)'}`,
-                      boxShadow: poke ? `0 4px 15px rgba(${rgb}, 0.15)` : 'none',
+                      background: poke ? `var(--bg-card)` : 'var(--bg-secondary)',
+                      border: `3px solid ${poke ? 'var(--text-primary)' : 'var(--border-color)'}`,
+                      boxShadow: poke ? `4px 4px 0px var(--text-primary)` : 'none',
                     }}
                   >
                     {poke ? (
                       <>
                         <div className="relative group">
-                          <div className="absolute inset-0 m-auto w-12 h-12 rounded-full blur-xl opacity-20" style={{ background: bgColor }} />
+                          {/* Flat geometric backdrop */}
+                          <div className="absolute inset-0 m-auto w-12 h-12 rounded-full border-2 opacity-50" style={{ backgroundColor: bgColor, borderColor: 'var(--text-primary)' }} />
                           {poke.sprites?.officialArtwork && (
                             <Image
                               src={poke.sprites.officialArtwork}
                               alt={poke.name}
                               width={64}
                               height={64}
-                              className="relative z-10 drop-shadow-md object-contain mb-2 transition-transform group-hover:scale-110"
+                              className="relative z-10 object-contain mb-2 transition-transform group-hover:-translate-y-1"
                               unoptimized
                             />
                           )}
@@ -225,7 +245,7 @@ export default function TeamBuilderPage() {
                           style={{
                             background: 'var(--pokedex-red)',
                             color: 'white',
-                            border: '2px solid var(--pokedex-red-dark)',
+                            border: '3px solid var(--text-primary)',
                           }}
                         >
                           ✕

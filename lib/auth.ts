@@ -79,7 +79,7 @@ export function verifyToken(token: string): JWTPayload | null {
 
 /**
  * Validate password strength
- * Requirements: 12+ chars, at least one uppercase, one number
+ * Requirements: 8+ chars, at least one uppercase, one number, one special character
  */
 export function isValidPassword(password: string): {
   valid: boolean;
@@ -87,8 +87,8 @@ export function isValidPassword(password: string): {
 } {
   const errors: string[] = [];
 
-  if (password.length < 12) {
-    errors.push('Password must be at least 12 characters long');
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
   }
 
   if (!/[A-Z]/.test(password)) {
@@ -140,11 +140,6 @@ export function extractTokenFromHeader(authHeader?: string): string | null {
   return parts[1];
 }
 
-/**
- * Create token hash for storing in database
- * Prevents plaintext token storage
- */
-export async function hashToken(token: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(token, salt);
-}
+// NOTE: Refresh token storage/verification has been moved to lib/user-store.ts
+// (file-based storage that works without PostgreSQL)
+

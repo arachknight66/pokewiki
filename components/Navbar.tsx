@@ -85,10 +85,11 @@ export default function Navbar() {
                   <span className="text-xs font-bold leading-none">{user.username}</span>
                 </div>
                 <div className="group relative">
-                  <button className="w-10 h-10 rounded-xl bg-[var(--bg-secondary)] border-2 border-[var(--border-color-bold)] flex items-center justify-center text-xl hover:border-[var(--pokedex-red)] transition-all">
-                    🧢
-                  </button>
-                  {/* Dropdown would go here */}
+                  <Link href="/profile">
+                    <button className="w-10 h-10 rounded-xl bg-[var(--bg-secondary)] border-2 border-[var(--border-color-bold)] flex items-center justify-center text-xl hover:border-[var(--pokedex-red)] transition-all cursor-pointer">
+                      🧢
+                    </button>
+                  </Link>
                 </div>
                 <button 
                   onClick={logout}

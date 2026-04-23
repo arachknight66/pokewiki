@@ -1,11 +1,16 @@
 /**
  * API Route: Authentication - Login
+ * Uses local JSON file store instead of PostgreSQL.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
 import { verifyPassword, createAuthTokens } from '@/lib/auth';
 import { LoginSchema } from '@/lib/validators';
+import {
+  findUserByEmail,
+  updateLastLogin,
+  storeRefreshTokenLocal,
+} from '@/lib/user-store';
 import { User } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
@@ -31,13 +36,9 @@ export async function POST(req: NextRequest) {
     const { email, password } = validation.data;
 
     // Find user
-    const result = await query(
-      `SELECT id, email, username, password_hash, preferences, last_login
-       FROM users WHERE email = $1 AND is_active = true`,
-      [email.toLowerCase()]
-    );
+    const user = findUserByEmail(email);
 
-    if (result.rows.length === 0) {
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -49,8 +50,6 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
-
-    const user = result.rows[0];
 
     // Verify password
     const isValid = await verifyPassword(password, user.password_hash);
@@ -69,10 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update last login
-    await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
-      [user.id]
-    );
+    updateLastLogin(user.id);
 
     // Create tokens
     const tokens = createAuthTokens({
@@ -80,11 +76,14 @@ export async function POST(req: NextRequest) {
       email: user.email,
       username: user.username,
       preferences: user.preferences,
-      emailVerified: true,
+      emailVerified: user.email_verified,
       isActive: true,
-      createdAt: user.created_at,
-      lastLogin: user.last_login,
+      createdAt: new Date(user.created_at),
+      lastLogin: user.last_login ? new Date(user.last_login) : undefined,
     } as User);
+
+    // Store refresh token
+    await storeRefreshTokenLocal(user.id, tokens.refreshToken);
 
     // Create response
     const response = NextResponse.json(
@@ -107,7 +106,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 86400,
       path: '/',
     });
@@ -115,7 +114,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 604800,
       path: '/',
     });
