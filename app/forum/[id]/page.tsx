@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth, useForumThread } from '@/hooks';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +19,7 @@ export default function ThreadDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { data, isLoading, refetch } = useForumThread(id as string);
+  const queryClient = useQueryClient();
   
   const [replyBody, setReplyBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,7 +38,8 @@ export default function ThreadDetailPage() {
         { headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } }
       );
       setReplyBody('');
-      refetch();
+      refetch(); // Refetch the detailed thread view
+      queryClient.invalidateQueries({ queryKey: ['forum-threads'] }); // Invalidate the thread list cache
     } catch (err) {
       console.error(err);
     } finally {

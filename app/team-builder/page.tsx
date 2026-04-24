@@ -5,6 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePokemonList, useCreateTeam, useAuth } from '@/hooks';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +34,7 @@ function hexToRgb(hex: string): string {
 export default function TeamBuilderPage() {
   const { user } = useAuth();
   const createTeamMutation = useCreateTeam();
+  const queryClient = useQueryClient();
 
   const [selectedPokemon, setSelectedPokemon] = useState<number[]>([]);
   const [teamName, setTeamName] = useState('');
@@ -109,6 +111,7 @@ export default function TeamBuilderPage() {
       setTeamName('');
       setSelectedPokemon([]);
       setRatingResult(null);
+      queryClient.invalidateQueries({ queryKey: ['teams'] }); // Invalidate so /teams reflects changes
     } catch (error) {
       alert('Failed to save team');
     } finally {

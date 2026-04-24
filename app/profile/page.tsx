@@ -60,7 +60,7 @@ export default function ProfilePage() {
               <div className="relative w-32 h-32 mb-4 group cursor-pointer transition-transform hover:-translate-y-1">
                 <div className="absolute inset-0 border-4 border-[var(--text-primary)] rounded-[1rem] bg-[var(--bg-secondary)] overflow-hidden" style={{ boxShadow: '4px 4px 0px var(--text-primary)' }}>
                   <Image 
-                    src={user.avatarUrl || '/trainer-avatar.png'} 
+                    src="/profile.png" 
                     alt="Trainer Avatar"
                     fill
                     sizes="(max-width: 128px) 100vw, 128px"
