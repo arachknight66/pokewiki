@@ -13,7 +13,8 @@ import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
 import Image from 'next/image';
 
 const PokemonSlot = ({ id }: { id: number }) => {
-  const { data: pokemon, isLoading } = usePokemon(id);
+  const { data, isLoading } = usePokemon(id);
+  const pokemon = data?.pokemon;
 
   if (isLoading) {
     return (
@@ -30,7 +31,7 @@ const PokemonSlot = ({ id }: { id: number }) => {
     <Card className="flex flex-col items-center p-6 h-full border-2 border-transparent hover:border-blue-500/30 transition-all hover:-translate-y-1">
       <div className="relative w-32 h-32 mb-4 drop-shadow-xl group-hover:scale-110 transition-transform">
         <Image 
-          src={pokemon.spriteUrl} 
+          src={pokemon.sprites?.front2d || '/image.png'} 
           alt={pokemon.name} 
           fill 
           sizes="(max-width: 128px) 100vw, 128px"
@@ -42,10 +43,10 @@ const PokemonSlot = ({ id }: { id: number }) => {
       <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} />
       
       <div className="w-full grid grid-cols-2 gap-2 mt-4 text-xs font-mono font-bold text-gray-500 bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
-        <div className="flex justify-between uppercase"><span>HP</span> <span>{pokemon.hp}</span></div>
-        <div className="flex justify-between uppercase"><span>ATK</span> <span>{pokemon.attack}</span></div>
-        <div className="flex justify-between uppercase"><span>DEF</span> <span>{pokemon.defense}</span></div>
-        <div className="flex justify-between uppercase"><span>SPD</span> <span>{pokemon.speed}</span></div>
+        <div className="flex justify-between uppercase"><span>HP</span> <span>{pokemon.stats.hp}</span></div>
+        <div className="flex justify-between uppercase"><span>ATK</span> <span>{pokemon.stats.attack}</span></div>
+        <div className="flex justify-between uppercase"><span>DEF</span> <span>{pokemon.stats.defense}</span></div>
+        <div className="flex justify-between uppercase"><span>SPD</span> <span>{pokemon.stats.spe}</span></div>
       </div>
     </Card>
   );
