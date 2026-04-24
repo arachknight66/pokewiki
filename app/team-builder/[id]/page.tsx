@@ -39,7 +39,7 @@ const PokemonSlot = ({ id }: { id: number }) => {
         />
       </div>
       <h3 className="text-lg font-black font-display capitalize mb-2">{pokemon.name}</h3>
-      <TypeBadgeGroup type1={pokemon.type1} type2={pokemon.type2} />
+      <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} />
       
       <div className="w-full grid grid-cols-2 gap-2 mt-4 text-xs font-mono font-bold text-gray-500 bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
         <div className="flex justify-between uppercase"><span>HP</span> <span>{pokemon.hp}</span></div>
