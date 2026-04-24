@@ -5,6 +5,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 const FEATURES = [
@@ -51,13 +52,13 @@ export default function Home() {
             opacity: 0,
           }}
         >
-          <svg viewBox="0 0 100 100" className="w-full h-full" style={{ color: 'var(--pokedex-red)' }}>
-            <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
-            <line x1="4" y1="50" x2="36" y2="50" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
-            <line x1="64" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="3.5" opacity="0.25" />
-            <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" strokeWidth="3.5" opacity="0.35" />
-            <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.5" />
-          </svg>
+          <Image
+            src="/image.png"
+            alt="Pokeball"
+            width={96}
+            height={96}
+            className="w-full h-full"
+          />
         </div>
 
         {/* Title */}
@@ -93,12 +94,13 @@ export default function Home() {
               className="hero-btn hero-btn-primary w-full px-8 py-4 text-sm font-black uppercase tracking-widest"
             >
               <span className="hero-btn-content">
-                <svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor" style={{ opacity: 0.7 }}>
-                  <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="8" />
-                  <line x1="4" y1="50" x2="36" y2="50" stroke="currentColor" strokeWidth="8" />
-                  <line x1="64" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="12" fill="currentColor" />
-                </svg>
+                <Image
+                  src="/image.png"
+                  alt="Pokeball"
+                  width={16}
+                  height={16}
+                  style={{ opacity: 0.7 }}
+                />
                 Open Pokédex
               </span>
             </button>

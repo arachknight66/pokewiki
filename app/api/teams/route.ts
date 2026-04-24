@@ -3,13 +3,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { CreateTeamSchema, TeamListSchema } from '@/lib/validators';
 import { Team } from '@/lib/types';
 import { rateTeam } from '@/lib/rating-engine';
-import { v4 as uuidv4 } from 'uuid';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,50 +42,52 @@ export async function GET(req: NextRequest) {
     const { page, pageSize, sortBy, sortOrder } = validation.data;
     const offset = (page - 1) * pageSize;
 
-    // Build query
-    let whereClause = 'is_public = true';
-    let params: any[] = [];
+    // Build query conditions
+    const whereClause: any = {
+      is_public: true,
+    };
 
-    // If authenticated, include user's own teams
     if (session?.user) {
-      whereClause = `is_public = true OR user_id = $1`;
-      params = [(session.user as any).id];
+      // If authenticated, include user's own teams
+      whereClause.OR = [
+        { is_public: true },
+        { user_id: (session.user as any).id },
+      ];
+      delete whereClause.is_public; // Remove the single constraint since we have OR
     }
 
-    const sortColumn = sortBy === 'rating' ? 'rating_score' : sortBy === 'name' ? 'name' : 'created_at';
-    const sortDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
+    // Determine sort column
+    const orderBy: any = {};
+    if (sortBy === 'rating') {
+      orderBy.rating_score = sortOrder;
+    } else if (sortBy === 'name') {
+      orderBy.name = sortOrder;
+    } else {
+      orderBy.created_at = sortOrder;
+    }
 
-    // Count total
-    const countQuery = `SELECT COUNT(*) as total FROM teams WHERE ${whereClause}`;
-    const countResult = await query(countQuery, params);
-    const total = countResult.rows[0].total;
+    const [total, dbTeams] = await Promise.all([
+      prisma.team.count({ where: whereClause }),
+      prisma.team.findMany({
+        where: whereClause,
+        orderBy,
+        skip: offset,
+        take: pageSize,
+      }),
+    ]);
 
-    // Get teams
-    const paramIndex = params.length + 1;
-    const dataQuery = `
-      SELECT id, user_id, name, description, format, pokemon_ids, 
-             rating_score, is_public, views, created_at, updated_at
-      FROM teams
-      WHERE ${whereClause}
-      ORDER BY ${sortColumn} ${sortDirection}
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
-
-    params.push(pageSize, offset);
-    const result = await query(dataQuery, params);
-
-    const teams: Team[] = result.rows.map(row => ({
+    const teams: Team[] = dbTeams.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
       name: row.name,
       description: row.description || undefined,
-      format: row.format,
+      format: row.format || 'OU',
       pokemonIds: row.pokemon_ids,
-      ratingScore: row.rating_score,
-      isPublic: row.is_public,
-      views: row.views,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      ratingScore: row.rating_score ? Number(row.rating_score) : 0,
+      isPublic: row.is_public || false,
+      views: row.views || 0,
+      createdAt: row.created_at as Date,
+      updatedAt: row.updated_at as Date,
     }));
 
     const totalPages = Math.ceil(total / pageSize);
@@ -148,25 +149,21 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, description, format, pokemonIds } = validation.data;
-    const teamId = uuidv4();
-
-    // Create team
-    const result = await query(
-      `INSERT INTO teams (id, user_id, name, description, format, pokemon_ids)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [teamId, (session.user as any).id, name, description || null, format, pokemonIds]
-    );
-
-    const team = result.rows[0];
 
     // Calculate initial rating (simplified for now)
     const ratingScore = Math.round(Math.random() * 40 + 40); // 40-80
-    
-    await query(
-      'UPDATE teams SET rating_score = $1 WHERE id = $2',
-      [ratingScore, teamId]
-    );
+
+    // Create team using Prisma
+    const team = await prisma.team.create({
+      data: {
+        user_id: (session.user as any).id,
+        name,
+        description: description || null,
+        format,
+        pokemon_ids: pokemonIds,
+        rating_score: ratingScore,
+      },
+    });
 
     return NextResponse.json(
       {
@@ -178,7 +175,7 @@ export async function POST(req: NextRequest) {
           description: team.description,
           format: team.format,
           pokemonIds: team.pokemon_ids,
-          ratingScore,
+          ratingScore: team.rating_score ? Number(team.rating_score) : ratingScore,
           isPublic: team.is_public,
           views: team.views,
           createdAt: team.created_at,

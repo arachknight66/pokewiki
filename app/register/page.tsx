@@ -10,16 +10,18 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Image from 'next/image';
 
 /* ── Inline SVG Pokéball ─────────────────────────────────────────────── */
 function PokeballSVG({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className}>
-      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="5" />
-      <line x1="4" y1="50" x2="96" y2="50" stroke="currentColor" strokeWidth="5" />
-      <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" strokeWidth="5" />
-      <circle cx="50" cy="50" r="6" fill="currentColor" opacity="0.3" />
-    </svg>
+    <Image 
+      src="/image.png" 
+      alt="Pokeball" 
+      width={100} 
+      height={100} 
+      className={className} 
+    />
   );
 }
 

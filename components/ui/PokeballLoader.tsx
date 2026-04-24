@@ -4,6 +4,8 @@
 
 'use client';
 
+import Image from 'next/image';
+
 export default function PokeballLoader({ message = 'Loading...' }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] gap-6">
@@ -15,88 +17,14 @@ export default function PokeballLoader({ message = 'Loading...' }: { message?: s
           style={{ background: 'rgba(var(--glow-color), 0.15)' }}
         />
 
-        <svg
-          viewBox="0 0 100 100"
+        <Image
+          src="/image.png"
+          alt="Loading..."
+          width={96}
+          height={96}
           className="w-24 h-24 drop-shadow-xl relative z-10"
           style={{ filter: 'drop-shadow(0 0 15px rgba(239, 68, 68, 0.3))' }}
-        >
-          {/* Top half — red */}
-          <path
-            d="M 50 5 A 45 45 0 0 1 95 50 L 62 50 A 12 12 0 0 0 38 50 L 5 50 A 45 45 0 0 1 50 5 Z"
-            fill="#EF4444"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          >
-            <animate
-              attributeName="fill"
-              values="#EF4444;#F87171;#EF4444"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </path>
-
-          {/* Bottom half — white/cream */}
-          <path
-            d="M 50 95 A 45 45 0 0 1 5 50 L 38 50 A 12 12 0 0 0 62 50 L 95 50 A 45 45 0 0 1 50 95 Z"
-            fill="var(--bg-card, #f5f5f5)"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          />
-
-          {/* Center line */}
-          <line
-            x1="5" y1="50" x2="38" y2="50"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          />
-          <line
-            x1="62" y1="50" x2="95" y2="50"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          />
-
-          {/* Center button — outer ring */}
-          <circle
-            cx="50" cy="50" r="12"
-            fill="var(--bg-card, #f5f5f5)"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          />
-
-          {/* Center button — inner circle with glow */}
-          <circle cx="50" cy="50" r="6" fill="#1a1a2e">
-            <animate
-              attributeName="r"
-              values="6;7;6"
-              dur="1.5s"
-              repeatCount="indefinite"
-            />
-          </circle>
-
-          {/* Shine effect */}
-          <ellipse
-            cx="36" cy="28"
-            rx="8" ry="5"
-            fill="white"
-            opacity="0.3"
-            transform="rotate(-30 36 28)"
-          >
-            <animate
-              attributeName="opacity"
-              values="0.3;0.5;0.3"
-              dur="2s"
-              repeatCount="indefinite"
-            />
-          </ellipse>
-
-          {/* Outer border */}
-          <circle
-            cx="50" cy="50" r="46.5"
-            fill="none"
-            stroke="#1a1a2e"
-            strokeWidth="3"
-          />
-        </svg>
+        />
 
         {/* Rotating sparkle ring */}
         <div className="absolute inset-[-12px] animate-spin-slow pointer-events-none">

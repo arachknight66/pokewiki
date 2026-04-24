@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import Image from 'next/image';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks';
 
@@ -30,13 +31,14 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             {/* Pokéball logo */}
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 overflow-hidden"
-              style={{
-                background: 'linear-gradient(180deg, var(--pokedex-red) 0%, var(--pokedex-red) 45%, #1a1a2e 45%, #1a1a2e 55%, var(--bg-card) 55%, var(--bg-card) 100%)',
-                border: '2px solid #1a1a2e',
-                boxShadow: '0 2px 10px rgba(var(--glow-color), 0.25)',
-              }}>
-              <div className="w-3 h-3 rounded-full border-2 border-[#1a1a2e] bg-white" />
+            <div className="w-10 h-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 overflow-hidden">
+              <Image 
+                src="/image.png" 
+                alt="PokéWiki Logo" 
+                width={40} 
+                height={40} 
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-lg font-black tracking-tight font-display">
               Poké<span style={{ color: 'var(--pokedex-red)' }}>Wiki</span>

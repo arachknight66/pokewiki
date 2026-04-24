@@ -27,6 +27,7 @@ model User {
 
   forum_threads  ForumThread[]
   forum_replies  ForumReply[]
+  teams          Team[]
 
   @@map("users")
 }
@@ -81,5 +82,30 @@ model ForumReply {
   @@index([thread_id, created_at(sort: Asc)])
   @@index([user_id])
   @@index([net_votes(sort: Desc)])
+  @@index([created_at(sort: Desc)])
+}
+
+model Team {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String    @db.Uuid
+  
+  name          String    @db.VarChar(150)
+  description   String?   @db.Text
+  format        String?   @default("OU") @db.VarChar(50)
+  
+  pokemon_ids   Int[]
+  
+  rating_score  Decimal?  @default(0) @db.Decimal(5, 2)
+  is_public     Boolean?  @default(false)
+  views         Int?      @default(0)
+  
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("teams")
+  @@index([user_id])
+  @@index([rating_score(sort: Desc)])
   @@index([created_at(sort: Desc)])
 }
