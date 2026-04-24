@@ -3,6 +3,7 @@
  */
 
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Providers from './providers';
 import Navbar from '@/components/Navbar';
 import BackToTop from '@/components/BackToTop';
@@ -61,17 +62,22 @@ export default function RootLayout({
             </main>
 
             {/* Footer */}
-            <footer className="relative mt-auto">
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(var(--glow-color),0.2)] to-transparent" />
-              <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between text-xs gap-3" style={{ color: 'var(--text-muted)' }}>
-                <p className="flex items-center gap-1.5">
-                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-glow-pulse" />
-                  © 2026 PokéWiki · Pokémon data from{' '}
-                  <a href="https://pokeapi.co" className="underline decoration-dotted hover:text-[var(--accent-primary)] transition-colors">
-                    PokéAPI
-                  </a>
+            <footer className="relative mt-auto pt-4 pb-8">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-[var(--pokedex-red)] to-transparent opacity-30 mb-6" />
+              <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs gap-4">
+                <div className="flex items-center gap-3">
+                  <Image src="/image.png" alt="PokéWiki" width={24} height={24} className="opacity-80 grayscale hover:grayscale-0 transition-all" />
+                  <p className="flex items-center gap-1.5 font-bold" style={{ color: 'var(--text-secondary)' }}>
+                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-glow-pulse" />
+                    © 2026 PokéWiki · Data from{' '}
+                    <a href="https://pokeapi.co" className="underline decoration-dotted hover:text-[var(--pokedex-red)] transition-colors">
+                      PokéAPI
+                    </a>
+                  </p>
+                </div>
+                <p className="font-medium text-center sm:text-right" style={{ color: 'var(--text-muted)' }}>
+                  Pokémon and all related names are ™ & © Nintendo / Game Freak / Creatures Inc.
                 </p>
-                <p>Pokémon and all related names are ™ & © Nintendo / Game Freak / Creatures Inc.</p>
               </div>
             </footer>
           </Providers>

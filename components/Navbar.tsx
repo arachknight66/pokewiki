@@ -88,8 +88,14 @@ export default function Navbar() {
                 </div>
                 <div className="group relative">
                   <Link href="/profile">
-                    <button className="w-10 h-10 rounded-xl bg-[var(--bg-secondary)] border-2 border-[var(--border-color-bold)] flex items-center justify-center text-xl hover:border-[var(--pokedex-red)] transition-all cursor-pointer">
-                      🧢
+                    <button className="w-10 h-10 rounded-xl bg-[var(--bg-secondary)] border-2 border-[var(--border-color-bold)] flex items-center justify-center text-xl hover:border-[var(--pokedex-red)] transition-all cursor-pointer overflow-hidden p-0">
+                      <Image 
+                        src="/profile.png" 
+                        alt="Profile" 
+                        width={40} 
+                        height={40} 
+                        className="w-full h-full object-cover"
+                      />
                     </button>
                   </Link>
                 </div>
