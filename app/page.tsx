@@ -83,17 +83,17 @@ export default function Home() {
 
         {/* Primary Actions */}
         <div
-          className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto"
+          className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto w-full"
           style={{
             animation: 'heroActionsIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards',
             opacity: 0,
           }}
         >
-          <Link href="/pokemon" className="flex-1">
+          <Link href="/pokemon" className="flex-1 flex">
             <button
-              className="hero-btn hero-btn-primary w-full px-8 py-4 text-sm font-black uppercase tracking-widest"
+              className="hero-btn hero-btn-primary w-full h-full px-4 sm:px-6 py-4 text-sm font-black uppercase tracking-widest flex items-center justify-center whitespace-nowrap"
             >
-              <span className="hero-btn-content">
+              <span className="hero-btn-content whitespace-nowrap flex items-center gap-2">
                 <Image
                   src="/image.png"
                   alt="Pokeball"
@@ -105,15 +105,15 @@ export default function Home() {
               </span>
             </button>
           </Link>
-          <Link href="/team-builder" className="flex-1">
+          <Link href="/team-builder" className="flex-1 flex">
             <button
-              className="hero-btn hero-btn-secondary w-full px-8 py-4 text-sm font-black uppercase tracking-widest"
+              className="hero-btn hero-btn-secondary w-full h-full px-4 sm:px-6 py-4 text-sm font-black uppercase tracking-widest flex items-center justify-center whitespace-nowrap"
             >
-              <span className="hero-btn-content">
+              <span className="hero-btn-content whitespace-nowrap flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M12 2L15 8.5L22 9.5L17 14.5L18 21.5L12 18.5L6 21.5L7 14.5L2 9.5L9 8.5Z" />
                 </svg>
-                Build a Team
+                Build A Team
               </span>
             </button>
           </Link>
