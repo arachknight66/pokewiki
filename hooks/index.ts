@@ -12,6 +12,17 @@ import { User, Pokemon, Team, ForumThread, Tournament } from '@/lib/types';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { 
+  getEvolutionChain, 
+  getPokemonLocationEncounters, 
+  getMoveDetail, 
+  getAbilityDetail, 
+  getPokemonThatLearnMove, 
+  getPokemonByAbility, 
+  getItemDetail, 
+  getItemList, 
+  getPokemonEvolvingWithItem 
+} from '@/lib/api/pokeApi';
 
 // ============================================================================
 // AUTHENTICATION HOOKS
@@ -146,11 +157,7 @@ export function useTeam(id: string) {
 export function useCreateTeam() {
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await axios.post(`/api/teams`, data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      });
+      const response = await axios.post(`/api/teams`, data);
       return response.data.data;
     },
   });
@@ -226,3 +233,153 @@ export function useLocalStorage<T>(
 
   return [storedValue, setValue];
 }
+
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// ============================================================================
+// AUDIO & PHASE 2 HOOKS
+// ============================================================================
+
+let globalAudio: HTMLAudioElement | null = null;
+let globalSetPlayingId: ((id: number | null) => void) | null = null;
+
+export function useAudioPlayer() {
+  const [playingId, setPlayingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    globalSetPlayingId = setPlayingId;
+    return () => {
+      if (globalSetPlayingId === setPlayingId) {
+        globalSetPlayingId = null;
+      }
+    };
+  }, []);
+
+  const playCry = (id: number, url: string) => {
+    try {
+      if (globalAudio) {
+        globalAudio.pause();
+        globalAudio = null;
+      }
+      
+      if (playingId === id) {
+        if (globalSetPlayingId) globalSetPlayingId(null);
+        return;
+      }
+
+      const audio = new Audio(url);
+      globalAudio = audio;
+      if (globalSetPlayingId) globalSetPlayingId(id);
+
+      audio.play().catch((err) => {
+        console.warn('Audio play failed:', err);
+        if (globalSetPlayingId) globalSetPlayingId(null);
+      });
+
+      audio.onended = () => {
+        if (globalAudio === audio) {
+          globalAudio = null;
+          if (globalSetPlayingId) globalSetPlayingId(null);
+        }
+      };
+
+      audio.onerror = () => {
+        if (globalAudio === audio) {
+          globalAudio = null;
+          if (globalSetPlayingId) globalSetPlayingId(null);
+        }
+      };
+    } catch (e) {
+      console.warn('Cry player setup error:', e);
+      if (globalSetPlayingId) globalSetPlayingId(null);
+    }
+  };
+
+  return { playingId, playCry };
+}
+
+export function useEvolutionChain(url: string) {
+  return useQuery({
+    queryKey: ['evolution-chain', url],
+    queryFn: () => getEvolutionChain(url),
+    enabled: !!url,
+  });
+}
+
+export function usePokemonLocationEncounters(id: number) {
+  return useQuery({
+    queryKey: ['pokemon-encounters', id],
+    queryFn: () => getPokemonLocationEncounters(id),
+    enabled: !!id,
+  });
+}
+
+export function useMoveDetail(name: string) {
+  return useQuery({
+    queryKey: ['move-detail', name],
+    queryFn: () => getMoveDetail(name),
+    enabled: !!name,
+  });
+}
+
+export function useAbilityDetail(nameOrId: string | number) {
+  return useQuery({
+    queryKey: ['ability-detail', nameOrId],
+    queryFn: () => getAbilityDetail(nameOrId),
+    enabled: !!nameOrId,
+  });
+}
+
+export function usePokemonThatLearnMove(moveName: string) {
+  return useQuery({
+    queryKey: ['pokemon-by-move', moveName],
+    queryFn: () => getPokemonThatLearnMove(moveName),
+    enabled: !!moveName,
+  });
+}
+
+export function usePokemonByAbility(abilityName: string) {
+  return useQuery({
+    queryKey: ['pokemon-by-ability', abilityName],
+    queryFn: () => getPokemonByAbility(abilityName),
+    enabled: !!abilityName,
+  });
+}
+
+export function useItemDetail(nameOrId: string | number) {
+  return useQuery({
+    queryKey: ['item-detail', nameOrId],
+    queryFn: () => getItemDetail(nameOrId),
+    enabled: !!nameOrId,
+  });
+}
+
+export function useItemList({ page = 1, pageSize = 20 } = {}) {
+  return useQuery({
+    queryKey: ['item-list', { page, pageSize }],
+    queryFn: () => getItemList(pageSize, (page - 1) * pageSize),
+  });
+}
+
+export function usePokemonEvolvingWithItem(itemName: string) {
+  return useQuery({
+    queryKey: ['pokemon-evolving-with-item', itemName],
+    queryFn: () => getPokemonEvolvingWithItem(itemName),
+    enabled: !!itemName,
+  });
+}
+

@@ -43,12 +43,7 @@ export default function NewThreadPage() {
 
     try {
       const response = await axios.post('/api/forum/threads', 
-        { title, category, body },
-        { 
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}` 
-          } 
-        }
+        { title, category, body }
       );
 
       if (response.data.success) {
@@ -70,66 +65,88 @@ export default function NewThreadPage() {
   };
 
   if (authLoading || !user) {
-    return <div className="h-96 flex items-center justify-center">Authenticating...</div>;
+    return <div className="h-96 flex items-center justify-center font-extrabold" style={{ color: 'var(--text-secondary)' }}>Authenticating...</div>;
   }
 
   return (
     <div className="max-w-3xl mx-auto stagger-children">
       <div className="mb-8">
-        <button 
+        <Button 
+          variant="ghost" 
+          size="sm" 
           onClick={() => router.back()}
-          className="text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2 mb-4"
+          className="flex items-center gap-2 mb-4"
         >
           ← Back to Forum
-        </button>
-        <h1 className="text-3xl font-black">Start a Discussion</h1>
+        </Button>
+        <h1 className="text-3xl lg:text-4xl font-black font-display">
+          <span className="anime-heading">Start a Discussion</span>
+        </h1>
       </div>
 
       <Card className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="p-4 rounded-xl bg-red-100 text-red-600 font-bold text-sm">
-              ⚠️ {error}
+            <div className="auth-error">
+              <span className="error-icon">⚠️</span> {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Discussion Title</label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. How to counter Flutter Mane in Reg G?"
-              className="w-full text-lg font-bold p-4 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all"
-            />
+            <label className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+              Discussion Title
+            </label>
+            <div className="auth-input-wrapper">
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. How to counter Flutter Mane in Reg G?"
+                className="auth-input shadow-inner !pl-4"
+              />
+              <div className="auth-input-glow" />
+            </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-4 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all appearance-none cursor-pointer"
-              >
-                {CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
-                ))}
-              </select>
+              <label className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+                Category
+              </label>
+              <div className="auth-input-wrapper">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="auth-input shadow-inner !pl-4 appearance-none cursor-pointer"
+                >
+                  {CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
+                      {cat.icon} {cat.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">▼</span>
+                <div className="auth-input-glow" />
+              </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Discussion Content</label>
-            <textarea
-              required
-              rows={8}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Share your thoughts, strategies, or questions..."
-              className="w-full p-6 bg-gray-50 dark:bg-gray-950 border-2 border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all resize-none"
-            />
+            <label className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
+              Discussion Content
+            </label>
+            <div className="auth-input-wrapper">
+              <textarea
+                required
+                rows={8}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Share your thoughts, strategies, or questions..."
+                className="auth-input shadow-inner !p-4 resize-none min-h-[200px]"
+              />
+              <div className="auth-input-glow" />
+            </div>
           </div>
 
           <div className="pt-4 flex justify-end">

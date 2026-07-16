@@ -82,4 +82,46 @@ export interface PokemonSpecies {
   genera: { genus: string; language: NamedAPIResource; }[];
   color: NamedAPIResource;
   generation: NamedAPIResource;
+  egg_groups: NamedAPIResource[];
+  gender_rate: number;
+  hatch_counter: number;
 }
+
+export interface EvolutionDetail {
+  trigger: NamedAPIResource;
+  item: NamedAPIResource | null;
+  min_level: number | null;
+  gender: number | null;
+  held_item: NamedAPIResource | null;
+  time_of_day: string;
+  known_move: NamedAPIResource | null;
+  known_move_type: NamedAPIResource | null;
+  min_happiness: number | null;
+  min_beauty: number | null;
+  min_affection: number | null;
+  relative_physical_stats: number | null;
+  location: NamedAPIResource | null;
+  needs_overworld_rain: boolean;
+  turn_upside_down: boolean;
+}
+
+export interface EvolutionNode {
+  species: NamedAPIResource;
+  evolution_details?: EvolutionDetail[];
+  evolves_to: EvolutionNode[];
+}
+
+export interface LocationEncounter {
+  location_area: NamedAPIResource;
+  version_details: {
+    max_chance: number;
+    encounter_details: {
+      min_level: number;
+      max_level: number;
+      chance: number;
+      method: NamedAPIResource;
+    }[];
+    version: NamedAPIResource;
+  }[];
+}
+

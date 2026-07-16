@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePokemon } from '@/hooks';
 import { Card } from '@/components/ui/Card';
 import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
@@ -13,22 +13,12 @@ import PokeballLoader from '@/components/ui/PokeballLoader';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
+import { PokemonType } from '@/lib/types';
+import { useAudioPlayer, usePokemonLocationEncounters } from '@/hooks';
+import { getPokemonCryUrl } from '@/lib/sprites';
+import { EvolutionTree } from '@/components/pokemon/EvolutionTree';
 
-const TYPE_COLORS: Record<string, string> = {
-  normal:   '#A8A878', fire:     '#F08030', water:    '#6890F0',
-  grass:    '#78C850', electric: '#F8D030', ice:      '#98D8D8',
-  fighting: '#C03028', poison:   '#A040A0', ground:   '#E0C068',
-  flying:   '#A890F0', psychic:  '#F85888', bug:      '#A8B820',
-  rock:     '#B8A038', ghost:    '#705898', dragon:   '#7038F8',
-  dark:     '#705848', steel:    '#B8B8D0', fairy:    '#EE99AC',
-};
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r}, ${g}, ${b}`;
-}
 
 type SpriteTab = 'artwork' | 'home3d' | 'animated' | 'classic';
 
@@ -39,6 +29,7 @@ export default function PokemonDetailPage() {
   const [showShiny, setShowShiny] = useState(false);
 
   const { data, isLoading, error } = usePokemon(pokemonId);
+  const { playingId, playCry } = useAudioPlayer();
 
   if (isLoading)
     return <PokeballLoader message="Loading Pokémon data..." />;
@@ -56,7 +47,9 @@ export default function PokemonDetailPage() {
   const pokemon = data.pokemon;
   const moves = data.moves || [];
   const pokedexEntries: { game: string; text: string }[] = data.pokedexEntries || [];
-  const bgColor = TYPE_COLORS[pokemon.type1] || '#A8A878';
+  const breeding = data.breeding;
+  const evolutionChainUrl = data.evolutionChainUrl;
+  const bgColor = TYPE_COLORS[pokemon.type1 as PokemonType] || '#A8A878';
   const rgb = hexToRgb(bgColor);
 
   const statsOrder = [
@@ -223,9 +216,23 @@ export default function PokemonDetailPage() {
               <p className="text-xs font-extrabold uppercase tracking-widest mb-2" style={{ color: bgColor }}>
                 #{String(pokemon.pokedexNumber).padStart(3, '0')} · Gen {pokemon.generation}
               </p>
-              <h1 className="text-4xl lg:text-5xl font-black font-display capitalize">
-                {pokemon.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl lg:text-5xl font-black font-display capitalize">
+                  {pokemon.name}
+                </h1>
+                <button
+                  onClick={() => playCry(pokemon.id, getPokemonCryUrl(pokemon.id))}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all hover:scale-110 active:scale-95 flex-shrink-0 ${playingId === pokemon.id ? 'animate-pulse' : ''}`}
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderColor: 'var(--text-primary)',
+                    boxShadow: '1px 1px 0px var(--text-primary)',
+                  }}
+                  title="Play Cry"
+                >
+                  {playingId === pokemon.id ? '🔊' : '🔈'}
+                </button>
+              </div>
             </div>
 
             <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} size="lg" />
@@ -252,9 +259,14 @@ export default function PokemonDetailPage() {
               ))}
             </div>
 
-            <Link href="/team-builder">
-              <Button size="lg">⚔️ Use in Team Builder</Button>
-            </Link>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link href="/team-builder">
+                <Button size="lg">⚔️ Use in Team Builder</Button>
+              </Link>
+              <Link href={`/compare?add=${pokemon.id}`}>
+                <Button size="lg" variant="outline">📊 Compare Stats</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -309,27 +321,29 @@ export default function PokemonDetailPage() {
           </h2>
           <div className="space-y-2.5">
             {pokemon.abilities?.map((ability: string) => (
-              <div
+              <Link
                 key={ability}
-                className="p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1"
-                style={{ background: 'var(--bg-secondary)', border: '2px solid var(--border-color)' }}
+                href={`/abilities/${ability}`}
+                className="block p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1 border-2 cursor-pointer hover:border-[var(--pokedex-red)]"
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}
               >
-                <p className="font-extrabold capitalize text-sm">{ability.replace('-', ' ')}</p>
-              </div>
+                <p className="font-extrabold capitalize text-sm">{ability.replace(/-/g, ' ')}</p>
+              </Link>
             ))}
             {pokemon.hiddenAbility && (
-              <div
-                className="p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1"
+              <Link
+                href={`/abilities/${pokemon.hiddenAbility}`}
+                className="block p-3.5 rounded-xl transition-all duration-200 hover:translate-x-1 border-2 cursor-pointer hover:border-[var(--accent-gold)]"
                 style={{
                   background: 'rgba(245, 158, 11, 0.06)',
-                  border: '2px solid rgba(245, 158, 11, 0.2)',
+                  borderColor: 'rgba(245, 158, 11, 0.2)',
                 }}
               >
-                <p className="font-extrabold capitalize text-sm">{pokemon.hiddenAbility.replace('-', ' ')}</p>
+                <p className="font-extrabold capitalize text-sm">{pokemon.hiddenAbility.replace(/-/g, ' ')}</p>
                 <p className="text-[10px] font-extrabold uppercase tracking-widest mt-1" style={{ color: '#F59E0B' }}>
                   Hidden Ability
                 </p>
-              </div>
+              </Link>
             )}
           </div>
         </Card>
@@ -390,6 +404,64 @@ export default function PokemonDetailPage() {
         </Card>
       )}
 
+      {evolutionChainUrl && (
+        <Card>
+          <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
+            <span style={{ color: 'var(--pokedex-red)' }}>⬣</span> Evolution Line
+          </h2>
+          <EvolutionTree chainUrl={evolutionChainUrl} />
+        </Card>
+      )}
+
+      {/* Breeding data */}
+      {breeding && (
+        <Card>
+          <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
+            <span style={{ color: 'var(--accent-gold)' }}>⬣</span> Breeding & Growth
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
+                Gender Ratio
+              </p>
+              {renderGenderBar(breeding.genderRate)}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                  Egg Groups
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {breeding.eggGroups.length > 0 ? (
+                    breeding.eggGroups.map((g: string) => (
+                      <EggGroupBadge key={g} group={g} />
+                    ))
+                  ) : (
+                    <span className="text-xs font-bold">Unknown</span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>
+                  Hatch Steps
+                </p>
+                <p className="text-base font-black font-display">
+                  {breeding.hatchCounter * 257} steps
+                </p>
+                <span className="text-[9px] font-extrabold text-muted uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                  ({breeding.hatchCounter} cycles)
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Location encounters */}
+      <LocationEncountersSection pokemonId={pokemonId} />
+
       {/* Moves */}
       {moves.length > 0 && (
         <Card>
@@ -398,14 +470,15 @@ export default function PokemonDetailPage() {
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[500px] overflow-y-auto pr-2">
             {moves.map((move: any) => {
-              const moveColor = TYPE_COLORS[move.type] || '#999';
+              const moveColor = TYPE_COLORS[move.type as PokemonType] || '#999';
               return (
-                <div
+                <Link
                   key={move.id}
-                  className="p-3 rounded-xl transition-all duration-200 hover:translate-x-1"
+                  href={`/moves/${move.name.toLowerCase().replace(/ /g, '-')}`}
+                  className="block p-3 rounded-xl transition-all duration-200 hover:translate-x-1 border-2 cursor-pointer hover:border-[var(--pokedex-red)]"
                   style={{
                     background: 'var(--bg-secondary)',
-                    border: '2px solid var(--border-color)',
+                    borderColor: 'var(--border-color)',
                     borderLeft: `4px solid ${moveColor}`,
                   }}
                 >
@@ -432,7 +505,7 @@ export default function PokemonDetailPage() {
                       </span>
                     )}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -455,5 +528,199 @@ export default function PokemonDetailPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+// Sibling badge component for Egg Groups
+function EggGroupBadge({ group }: { group: string }) {
+  return (
+    <span
+      className="inline-block rounded-lg font-black capitalize tracking-widest transition-all duration-200 hover:scale-105 border-2 shadow-sm px-3.5 py-1 text-[10px]"
+      style={{
+        backgroundColor: 'var(--bg-secondary)',
+        color: 'var(--text-primary)',
+        borderColor: 'var(--border-color-bold)',
+        boxShadow: `0 2px 8px rgba(0,0,0,0.05)`,
+      }}
+      title={`Egg Group: ${group}`}
+    >
+      {group.replace('-', ' ')}
+    </span>
+  );
+}
+
+// Visual indicator bar for Gender Ratios
+function renderGenderBar(rate: number) {
+  if (rate === -1) {
+    return (
+      <div 
+        className="w-full h-8 rounded-lg flex items-center justify-center text-xs font-black select-none border-2"
+        style={{
+          backgroundColor: 'var(--bg-secondary)',
+          borderColor: 'var(--text-primary)',
+          color: 'var(--text-secondary)'
+        }}
+      >
+        Genderless
+      </div>
+    );
+  }
+  const femalePct = (rate / 8) * 100;
+  const malePct = 100 - femalePct;
+  return (
+    <div 
+      className="w-full h-8 rounded-lg flex overflow-hidden border-2 font-black text-xs text-white"
+      style={{ borderColor: 'var(--text-primary)' }}
+    >
+      {malePct > 0 && (
+        <div 
+          className="flex items-center justify-center bg-blue-500 shadow-inner" 
+          style={{ width: `${malePct}%` }}
+        >
+          ♂ {malePct.toFixed(1)}%
+        </div>
+      )}
+      {femalePct > 0 && (
+        <div 
+          className="flex items-center justify-center bg-pink-500 shadow-inner" 
+          style={{ width: `${femalePct}%` }}
+        >
+          ♀ {femalePct.toFixed(1)}%
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Filterable encounters section
+function LocationEncountersSection({ pokemonId }: { pokemonId: number }) {
+  const { data: encounters, isLoading } = usePokemonLocationEncounters(pokemonId);
+  const [selectedVersion, setSelectedVersion] = useState<string>('');
+
+  const versions = React.useMemo(() => {
+    if (!encounters) return [];
+    const set = new Set<string>();
+    encounters.forEach((enc: any) => {
+      enc.version_details?.forEach((vd: any) => {
+        set.add(vd.version.name);
+      });
+    });
+    return Array.from(set).sort();
+  }, [encounters]);
+
+  React.useEffect(() => {
+    if (versions.length > 0 && !selectedVersion) {
+      setSelectedVersion(versions[0]);
+    }
+  }, [versions, selectedVersion]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
+          <span style={{ color: 'var(--accent-secondary)' }}>⬣</span> Where to Find
+        </h2>
+        <div className="text-sm font-bold animate-pulse" style={{ color: 'var(--text-muted)' }}>
+          Searching wild areas...
+        </div>
+      </Card>
+    );
+  }
+
+  if (!encounters || encounters.length === 0) {
+    return (
+      <Card>
+        <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
+          <span style={{ color: 'var(--accent-secondary)' }}>⬣</span> Where to Find
+        </h2>
+        <p className="text-sm font-bold opacity-60" style={{ color: 'var(--text-secondary)' }}>
+          This Pokémon cannot be found in the wild. It may be obtainable via evolution, breeding, trade, or special events.
+        </p>
+      </Card>
+    );
+  }
+
+  const rows: any[] = [];
+  encounters.forEach((enc: any) => {
+    const vd = enc.version_details?.find((v: any) => v.version.name === selectedVersion);
+    if (vd) {
+      vd.encounter_details.forEach((ed: any) => {
+        rows.push({
+          area: enc.location_area.name,
+          method: ed.method.name,
+          minLevel: ed.min_level,
+          maxLevel: ed.max_level,
+          chance: ed.chance,
+        });
+      });
+    }
+  });
+
+  const getMethodIcon = (method: string) => {
+    if (method.includes('walk')) return '🚶';
+    if (method.includes('surf')) return '🏄';
+    if (method.includes('fish') || method.includes('rod')) return '🎣';
+    if (method.includes('cave')) return '🕳️';
+    if (method.includes('gift') || method.includes('receive')) return '🎁';
+    return '🗺️';
+  };
+
+  return (
+    <Card>
+      <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
+        <span style={{ color: 'var(--accent-secondary)' }}>⬣</span> Where to Find
+      </h2>
+      
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Game Version:</span>
+          <div className="auth-input-wrapper !w-48 relative">
+            <select
+              value={selectedVersion}
+              onChange={(e) => setSelectedVersion(e.target.value)}
+              className="auth-input shadow-inner !pl-4 !py-1 text-xs appearance-none cursor-pointer"
+            >
+              {versions.map(v => (
+                <option key={v} value={v} style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}>
+                  {v.replace(/-/g, ' ')}
+                </option>
+              ))}
+            </select>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 text-[10px]">▼</span>
+            <div className="auth-input-glow" />
+          </div>
+        </div>
+
+        {rows.length > 0 ? (
+          <div className="overflow-x-auto rounded-xl border border-[var(--border-color)]">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="bg-[var(--bg-secondary)] font-extrabold border-b border-[var(--border-color-bold)]">
+                  <th className="p-3">Location Area</th>
+                  <th className="p-3">Method</th>
+                  <th className="p-3 text-center">Level Range</th>
+                  <th className="p-3 text-right">Encounter Rate</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)]">
+                {rows.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-white/5 transition-colors">
+                    <td className="p-3 font-extrabold capitalize">{row.area.replace(/-/g, ' ')}</td>
+                    <td className="p-3 capitalize flex items-center gap-1.5">
+                      <span>{getMethodIcon(row.method)}</span>
+                      <span>{row.method.replace(/-/g, ' ')}</span>
+                    </td>
+                    <td className="p-3 text-center font-bold">Lv. {row.minLevel} - {row.maxLevel}</td>
+                    <td className="p-3 text-right font-black" style={{ color: 'var(--pokedex-red)' }}>{row.chance}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm font-bold opacity-60" style={{ color: 'var(--text-secondary)' }}>Not available in this version.</p>
+        )}
+      </div>
+    </Card>
   );
 }

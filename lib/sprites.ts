@@ -21,3 +21,7 @@ export function getPokemonSprites(id: number) {
     showdownAnimatedShiny: `${SPRITE_BASE}/other/showdown/shiny/${id}.gif`,
   };
 }
+
+export function getPokemonCryUrl(id: number): string {
+  return `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`;
+}

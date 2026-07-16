@@ -85,6 +85,12 @@ export async function GET(
       sprites: getPokemonSprites(detailParams.id),
     };
 
+    const breeding = speciesParams ? {
+      eggGroups: speciesParams.egg_groups?.map((g: any) => g.name) || [],
+      genderRate: speciesParams.gender_rate,
+      hatchCounter: speciesParams.hatch_counter,
+    } : null;
+
     // 3. Map moves to Pokewiki type
     // We combine levelUp and machine
     const allMoves = [...(movesData?.levelUp || []), ...(movesData?.machine || [])];
@@ -131,6 +137,8 @@ export async function GET(
           pokemon,
           moves,
           pokedexEntries,
+          breeding,
+          evolutionChainUrl: speciesParams?.evolution_chain?.url || null,
         },
       },
       { status: 200 }

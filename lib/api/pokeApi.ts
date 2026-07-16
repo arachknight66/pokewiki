@@ -37,20 +37,168 @@ export const getEvolutionChain = async (url: string): Promise<EvolutionChainResp
   return response.data;
 };
 
-export const getAbilityDetail = async (url: string): Promise<string> => {
-  const cleanUrl = url.replace('https://pokeapi.co/api/v2/', '');
-  const response = await pokeApiClient.get(cleanUrl);
+export interface AbilityDetail {
+  id: number;
+  name: string;
+  effect: string;
+  shortEffect: string;
+  flavorText: string;
+}
+
+export const getAbilityDetail = async (idOrName: string | number): Promise<AbilityDetail> => {
+  const nameOrId = typeof idOrName === 'string' ? idOrName.toLowerCase().replace(' ', '-') : idOrName;
+  const response = await pokeApiClient.get(`ability/${nameOrId}`);
+  const data = response.data;
   
   // Find English effect
-  const effectEntry = response.data.effect_entries.find((e: any) => e.language.name === 'en');
-  if (effectEntry) {
-    return effectEntry.effect;
-  }
+  const effectEntry = data.effect_entries?.find((e: any) => e.language.name === 'en');
+  const effect = effectEntry ? effectEntry.effect : '';
+  const shortEffect = effectEntry ? effectEntry.short_effect : '';
   
-  // Fallback to flavor text if effect_entry is missing (Gen 9+ sometimes is empty)
-  const flavorText = response.data.flavor_text_entries.find((e: any) => e.language.name === 'en');
-  return flavorText ? flavorText.flavor_text : 'No description available.';
+  // Find English flavor text
+  const flavorEntry = data.flavor_text_entries?.find((e: any) => e.language.name === 'en');
+  const flavorText = flavorEntry ? flavorEntry.flavor_text : 'No description available.';
+  
+  return {
+    id: data.id,
+    name: data.name,
+    effect: effect || flavorText,
+    shortEffect: shortEffect || flavorText,
+    flavorText,
+  };
 };
+
+export const getPokemonLocationEncounters = async (id: number): Promise<any[]> => {
+  const response = await pokeApiClient.get(`pokemon/${id}/encounters`);
+  return response.data;
+};
+
+export const getMoveDetail = async (name: string): Promise<any> => {
+  const cleanName = name.toLowerCase().replace(' ', '-');
+  const response = await pokeApiClient.get(`move/${cleanName}`);
+  return response.data;
+};
+
+export const getItemDetail = async (idOrName: string | number): Promise<any> => {
+  const nameOrId = typeof idOrName === 'string' ? idOrName.toLowerCase().replace(' ', '-') : idOrName;
+  const response = await pokeApiClient.get(`item/${nameOrId}`);
+  return response.data;
+};
+
+export const getItemList = async (limit: number = 20, offset: number = 0): Promise<any> => {
+  const response = await pokeApiClient.get(`item?limit=${limit}&offset=${offset}`);
+  return response.data;
+};
+
+export const getPokemonThatLearnMove = async (moveName: string): Promise<any[]> => {
+  const query = `
+    query getPokemonByMove($moveName: String!) {
+      pokemon_v2_pokemonmove(where: {pokemon_v2_move: {name: {_eq: $moveName}}}) {
+        pokemon_v2_pokemon {
+          id
+          name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
+        }
+      }
+    }
+  `;
+  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { 
+    query,
+    variables: { moveName: moveName.toLowerCase().replace(' ', '-') }
+  });
+  
+  const raw = response.data.data.pokemon_v2_pokemonmove || [];
+  const seen = new Set();
+  const list: any[] = [];
+  raw.forEach((r: any) => {
+    const p = r.pokemon_v2_pokemon;
+    if (p && !seen.has(p.id)) {
+      seen.add(p.id);
+      list.push({
+        id: p.id,
+        name: p.name.replace('-', ' '),
+        types: p.pokemon_v2_pokemontypes.map((t: any) => t.pokemon_v2_type.name)
+      });
+    }
+  });
+  return list;
+};
+
+export const getPokemonByAbility = async (abilityName: string): Promise<any[]> => {
+  const query = `
+    query getPokemonByAbility($abilityName: String!) {
+      pokemon_v2_ability(where: {name: {_eq: $abilityName}}) {
+        pokemon_v2_pokemonabilities {
+          pokemon_v2_pokemon {
+            id
+            name
+            pokemon_v2_pokemontypes {
+              pokemon_v2_type {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { 
+    query,
+    variables: { abilityName: abilityName.toLowerCase().replace(' ', '-') }
+  });
+  
+  const raw = response.data.data.pokemon_v2_ability[0]?.pokemon_v2_pokemonabilities || [];
+  const seen = new Set();
+  const list: any[] = [];
+  raw.forEach((r: any) => {
+    const p = r.pokemon_v2_pokemon;
+    if (p && !seen.has(p.id)) {
+      seen.add(p.id);
+      list.push({
+        id: p.id,
+        name: p.name.replace('-', ' '),
+        types: p.pokemon_v2_pokemontypes.map((t: any) => t.pokemon_v2_type.name)
+      });
+    }
+  });
+  return list;
+};
+
+export const getPokemonEvolvingWithItem = async (itemName: string): Promise<any[]> => {
+  const query = `
+    query getEvolutions($itemName: String!) {
+      pokemon_v2_pokemonevolution(where: {pokemon_v2_item: {name: {_eq: $itemName}}}) {
+        pokemon_v2_pokemonspecy {
+          id
+          name
+        }
+      }
+    }
+  `;
+  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', {
+    query,
+    variables: { itemName: itemName.toLowerCase().replace(' ', '-') }
+  });
+  const raw = response.data.data.pokemon_v2_pokemonevolution || [];
+  const seen = new Set();
+  const list: any[] = [];
+  raw.forEach((r: any) => {
+    const s = r.pokemon_v2_pokemonspecy;
+    if (s && !seen.has(s.id)) {
+      seen.add(s.id);
+      list.push({ 
+        id: s.id, 
+        name: s.name.replace('-', ' ')
+      });
+    }
+  });
+  return list;
+};
+
 
 export interface GqlPokemonSearchData {
   id: number;

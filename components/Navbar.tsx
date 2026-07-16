@@ -11,7 +11,8 @@ const NAV_LINKS = [
   { href: '/',             label: 'Home',         icon: '🏠' },
   { href: '/pokemon',      label: 'Pokédex',      icon: '📖' },
   { href: '/team-builder', label: 'Team Builder',  icon: '⚔️' },
-  { href: '/teams',        label: 'My Teams',      icon: '🎒' },
+  { href: '/items',        label: 'Items',         icon: '💎' },
+  { href: '/compare',      label: 'Compare',       icon: '📊' },
   { href: '/forum',        label: 'Forum',         icon: '💬' },
 ];
 

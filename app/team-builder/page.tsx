@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePokemonList, useCreateTeam, useAuth } from '@/hooks';
+import { usePokemonList, useCreateTeam, useAuth, useDebounce } from '@/hooks';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
@@ -14,43 +14,32 @@ import { Pokemon, Team } from '@/lib/types';
 import { rateTeam } from '@/lib/rating-engine';
 import Link from 'next/link';
 import Image from 'next/image';
+import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
+import { Toast } from '@/components/ui/Toast';
 
-const TYPE_COLORS: Record<string, string> = {
-  normal:   '#A8A878', fire:     '#F08030', water:    '#6890F0',
-  grass:    '#78C850', electric: '#F8D030', ice:      '#98D8D8',
-  fighting: '#C03028', poison:   '#A040A0', ground:   '#E0C068',
-  flying:   '#A890F0', psychic:  '#F85888', bug:      '#A8B820',
-  rock:     '#B8A038', ghost:    '#705898', dragon:   '#7038F8',
-  dark:     '#705848', steel:    '#B8B8D0', fairy:    '#EE99AC',
-};
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r}, ${g}, ${b}`;
-}
 
 export default function TeamBuilderPage() {
   const { user } = useAuth();
   const createTeamMutation = useCreateTeam();
   const queryClient = useQueryClient();
 
-  const [selectedPokemon, setSelectedPokemon] = useState<number[]>([]);
+  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon[]>([]);
   const [teamName, setTeamName] = useState('');
   const [teamFormat, setTeamFormat] = useState('OU');
   const [searchTerm, setSearchTerm] = useState('');
   const [ratingResult, setRatingResult] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 200);
 
   const { data: pokemonListData, isLoading: pokemonLoading } = usePokemonList({
-    pageSize: 1100,
+    search: debouncedSearchTerm,
+    pageSize: 20,
   });
 
-  // Get selected Pokémon details
-  const selectedPokemonDetails = selectedPokemon.map(id =>
-    pokemonListData?.data?.find((p: Pokemon) => p.id === id)
-  ).filter(Boolean) as Pokemon[];
+  // Selected Pokémon details are simply the state objects directly now
+  const selectedPokemonDetails = selectedPokemon;
 
   // Calculate team rating when Pokémon are selected
   useEffect(() => {
@@ -61,23 +50,23 @@ export default function TeamBuilderPage() {
       ]).filter(Boolean);
 
       const rating = rateTeam({
-        team: { id: '', userId: '', pokemonIds: selectedPokemon } as Team,
+        team: { id: '', userId: '', pokemonIds: selectedPokemon.map(p => p.id) } as Team,
         pokemon: selectedPokemonDetails,
         moves: mockMoves as any,
       });
 
       setRatingResult(rating);
+    } else {
+      setRatingResult(null);
     }
   }, [selectedPokemonDetails, selectedPokemon]);
 
-  // Filter Pokémon based on search term (client-side since we have the full list)
-  const filteredPokemon = pokemonListData?.data?.filter((p: Pokemon) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Filter Pokémon based on search term (fetched server-side)
+  const filteredPokemon = pokemonListData?.data || [];
 
-  const handleAddPokemon = (pokemonId: number) => {
-    if (selectedPokemon.length < 6 && !selectedPokemon.includes(pokemonId)) {
-      setSelectedPokemon([...selectedPokemon, pokemonId]);
+  const handleAddPokemon = (pokemon: Pokemon) => {
+    if (selectedPokemon.length < 6 && !selectedPokemon.some(p => p.id === pokemon.id)) {
+      setSelectedPokemon([...selectedPokemon, pokemon]);
     }
   };
 
@@ -87,15 +76,15 @@ export default function TeamBuilderPage() {
 
   const handleSaveTeam = async () => {
     if (!user) {
-      alert('Please log in to save teams');
+      setFeedback({ type: 'error', message: 'Please log in to save teams' });
       return;
     }
     if (!teamName.trim()) {
-      alert('Please enter a team name');
+      setFeedback({ type: 'error', message: 'Please enter a team name' });
       return;
     }
     if (selectedPokemon.length === 0) {
-      alert('Please add at least one Pokémon');
+      setFeedback({ type: 'error', message: 'Please add at least one Pokémon' });
       return;
     }
 
@@ -105,15 +94,15 @@ export default function TeamBuilderPage() {
         name: teamName,
         description: `Team with ${selectedPokemon.length} Pokémon - Rating: ${ratingResult?.finalScore || 0}`,
         format: teamFormat,
-        pokemonIds: selectedPokemon,
+        pokemonIds: selectedPokemon.map(p => p.id),
       });
-      alert('Team saved successfully!');
+      setFeedback({ type: 'success', message: 'Team saved successfully!' });
       setTeamName('');
       setSelectedPokemon([]);
       setRatingResult(null);
       queryClient.invalidateQueries({ queryKey: ['teams'] }); // Invalidate so /teams reflects changes
     } catch (error) {
-      alert('Failed to save team');
+      setFeedback({ type: 'error', message: 'Failed to save team' });
     } finally {
       setIsSubmitting(false);
     }
@@ -292,7 +281,7 @@ export default function TeamBuilderPage() {
               ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
                   {filteredPokemon.map((poke: Pokemon) => {
-                    const isSelected = selectedPokemon.includes(poke.id);
+                    const isSelected = selectedPokemon.some(p => p.id === poke.id);
                     const isFull = selectedPokemon.length >= 6;
                     const bgColor = TYPE_COLORS[poke.type1] || '#A8A878';
                     const rgb = hexToRgb(bgColor);
@@ -300,7 +289,7 @@ export default function TeamBuilderPage() {
                     return (
                       <button
                         key={poke.id}
-                        onClick={() => handleAddPokemon(poke.id)}
+                        onClick={() => handleAddPokemon(poke)}
                         disabled={isFull || isSelected}
                         className="p-2.5 text-left rounded-xl transition-all duration-200 text-sm capitalize font-extrabold disabled:opacity-40 disabled:cursor-not-allowed group border-2"
                         style={{
@@ -486,6 +475,14 @@ export default function TeamBuilderPage() {
             Manage Your Saved Teams <span className="text-xl">➔</span>
           </Link>
         </div>
+      )}
+
+      {feedback && (
+        <Toast
+          message={feedback.message}
+          type={feedback.type}
+          onClose={() => setFeedback(null)}
+        />
       )}
     </div>
   );

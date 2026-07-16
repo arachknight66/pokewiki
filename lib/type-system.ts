@@ -295,3 +295,14 @@ export function getTypeTextColor(type: PokemonType): string {
   const darkTypes = ['normal', 'fire', 'grass', 'bug', 'rock', 'ghost', 'dark'];
   return darkTypes.includes(type) ? '#ffffff' : '#000000';
 }
+
+/**
+ * Convert hex color to RGB string (r, g, b format)
+ */
+export function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r}, ${g}, ${b}`;
+}
+

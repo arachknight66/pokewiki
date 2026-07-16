@@ -5,35 +5,23 @@
 'use client';
 
 import { useState } from 'react';
-import { usePokemonList } from '@/hooks';
+import { usePokemonList, useAudioPlayer } from '@/hooks';
 import { Card } from '@/components/ui/Card';
 import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
 import PokeballLoader from '@/components/ui/PokeballLoader';
-import { Pokemon } from '@/lib/types';
+import { Pokemon, PokemonType } from '@/lib/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
+import { getPokemonCryUrl } from '@/lib/sprites';
 
-const TYPE_COLORS: Record<string, string> = {
-  normal:   '#A8A878', fire:     '#F08030', water:    '#6890F0',
-  grass:    '#78C850', electric: '#F8D030', ice:      '#98D8D8',
-  fighting: '#C03028', poison:   '#A040A0', ground:   '#E0C068',
-  flying:   '#A890F0', psychic:  '#F85888', bug:      '#A8B820',
-  rock:     '#B8A038', ghost:    '#705898', dragon:   '#7038F8',
-  dark:     '#705848', steel:    '#B8B8D0', fairy:    '#EE99AC',
-};
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r}, ${g}, ${b}`;
-}
 
 export default function PokemonPage() {
   const [page, setPage] = useState(1);
   const [selectedType, setSelectedType] = useState('');
   const [selectedGen, setSelectedGen] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const { playingId, playCry } = useAudioPlayer();
 
   const { data: pokemonListData, isLoading } = usePokemonList({
     page,
@@ -171,7 +159,7 @@ export default function PokemonPage() {
                   All
                 </button>
                 {types.map(type => {
-                  const tc = TYPE_COLORS[type];
+                  const tc = TYPE_COLORS[type as PokemonType];
                   const isActive = selectedType === type;
                   return (
                     <button
@@ -209,7 +197,7 @@ export default function PokemonPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
             {pokemonListData?.data?.map((pokemon: Pokemon) => {
-              const bgColor = TYPE_COLORS[pokemon.type1] || '#A8A878';
+              const bgColor = TYPE_COLORS[pokemon.type1 as PokemonType] || '#A8A878';
               const rgb = hexToRgb(bgColor);
               return (
                 <Link key={pokemon.id} href={`/pokemon/${pokemon.id}`}>
@@ -229,6 +217,24 @@ export default function PokemonPage() {
                   >
                     {/* Type color stripe at top */}
                     <div className="h-2 w-full" style={{ background: bgColor }} />
+
+                    {/* Speaker play cry button */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        playCry(pokemon.id, getPokemonCryUrl(pokemon.id));
+                      }}
+                      className={`absolute top-2 right-2 z-20 w-6 h-6 rounded-full flex items-center justify-center border text-[9px] transition-all hover:scale-110 active:scale-95 flex-shrink-0 ${playingId === pokemon.id ? 'animate-pulse' : ''}`}
+                      style={{
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderColor: 'var(--text-primary)',
+                        boxShadow: '1px 1px 0px var(--text-primary)',
+                      }}
+                      title="Play Cry"
+                    >
+                      {playingId === pokemon.id ? '🔊' : '🔈'}
+                    </button>
 
                     {/* Pokédex number watermark */}
                     <span className="absolute top-3 right-3 text-4xl font-black select-none opacity-[0.04] dark:opacity-[0.07] font-display">
