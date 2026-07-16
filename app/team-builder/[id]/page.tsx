@@ -11,10 +11,12 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { TypeBadgeGroup } from '@/components/ui/TypeBadge';
 import Image from 'next/image';
+import { useShinyMode } from '@/app/ShinyModeContext';
 
 const PokemonSlot = ({ id }: { id: number }) => {
   const { data, isLoading } = usePokemon(id);
   const pokemon = data?.pokemon;
+  const { isShinyMode } = useShinyMode();
 
   if (isLoading) {
     return (
@@ -27,16 +29,17 @@ const PokemonSlot = ({ id }: { id: number }) => {
 
   if (!pokemon) return null;
 
+  const spriteSrc = isShinyMode ? (pokemon.sprites?.frontShiny2d || pokemon.sprites?.front2d) : pokemon.sprites?.front2d;
+
   return (
     <Card className="flex flex-col items-center p-6 h-full border-2 border-transparent hover:border-blue-500/30 transition-all hover:-translate-y-1">
       <div className="relative w-32 h-32 mb-4 drop-shadow-xl group-hover:scale-110 transition-transform">
         <Image 
-          src={pokemon.sprites?.front2d || '/image.png'} 
+          src={spriteSrc || '/image.png'} 
           alt={pokemon.name} 
           fill 
           sizes="(max-width: 128px) 100vw, 128px"
           className="object-contain filter custom-drop-shadow" 
-          unoptimized
         />
       </div>
       <h3 className="text-lg font-black font-display capitalize mb-2">{pokemon.name}</h3>

@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { EvolutionNode } from '@/lib/types/pokemon';
 import { getPokemonSprites } from '@/lib/sprites';
 import { useEvolutionChain } from '@/hooks';
+import { useShinyMode } from '@/app/ShinyModeContext';
 
 // Extracted from species url
 function getIdFromSpeciesUrl(url: string): number {
@@ -53,9 +54,11 @@ function getEvolutionDetailsString(details: any[]): string {
 function EvolutionNodeCard({ name, url }: { name: string; url: string }) {
   const id = getIdFromSpeciesUrl(url);
   const sprites = getPokemonSprites(id);
+  const { isShinyMode } = useShinyMode();
+  const spriteSrc = isShinyMode ? sprites.frontShiny2d : sprites.front2d;
   
   return (
-    <Link href={`/pokemon/${id}`}>
+    <Link href={`/pokemon/${id}` as any}>
       <div 
         className="flex flex-col items-center p-3 rounded-xl transition-all duration-300 hover:scale-105 border-2 text-center select-none cursor-pointer"
         style={{
@@ -67,12 +70,11 @@ function EvolutionNodeCard({ name, url }: { name: string; url: string }) {
       >
         <div className="w-16 h-16 relative flex items-center justify-center mb-1 bg-white/5 dark:bg-black/20 rounded-full border border-[var(--border-color)]">
           <Image 
-            src={sprites.front2d}
+            src={spriteSrc}
             alt={name}
             width={56}
             height={56}
             className="object-contain"
-            unoptimized
           />
         </div>
         <p className="font-extrabold capitalize text-xs truncate max-w-[100px]">{name.replace('-', ' ')}</p>

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SessionProvider } from 'next-auth/react';
+import { ShinyModeProvider } from './ShinyModeContext';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -22,7 +23,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <ShinyModeProvider>
+            {children}
+          </ShinyModeProvider>
         </QueryClientProvider>
       </ThemeProvider>
     </SessionProvider>

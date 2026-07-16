@@ -1,5 +1,3 @@
-import axios from 'axios';
-import pokeApiClient from './axios';
 import {
   Generation,
   NamedAPIResourceList,
@@ -8,33 +6,59 @@ import {
   EvolutionChainResponse
 } from '../types/pokemon';
 
+const BASE_URL = 'https://pokeapi.co/api/v2/';
+
+async function fetchPokeApi<T>(endpoint: string): Promise<T> {
+  const url = endpoint.startsWith('http') 
+    ? endpoint 
+    : `${BASE_URL}${endpoint.replace(/^\//, '')}`;
+  
+  const res = await fetch(url, {
+    next: { revalidate: 86400 } // 24 hours caching
+  });
+  
+  if (!res.ok) {
+    throw new Error(`PokeAPI error: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+async function fetchGraphQL<T>(query: string, variables?: any): Promise<T> {
+  const res = await fetch('https://beta.pokeapi.co/graphql/v1beta', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+    next: { revalidate: 86400 } // 24 hours caching
+  });
+
+  if (!res.ok) {
+    throw new Error(`GraphQL error: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 export const getGenerations = async (): Promise<Generation[]> => {
-  const response = await pokeApiClient.get<NamedAPIResourceList>('generation?limit=9');
-  const promises = response.data.results.map((gen) => 
-    pokeApiClient.get<Generation>(gen.url).then(res => res.data)
+  const list = await fetchPokeApi<NamedAPIResourceList>('generation?limit=9');
+  const promises = list.results.map((gen) => 
+    fetchPokeApi<Generation>(gen.url)
   );
   return Promise.all(promises);
 };
 
 export const getPokemonList = async (limit: number = 151, offset: number = 0): Promise<NamedAPIResourceList> => {
-  const response = await pokeApiClient.get<NamedAPIResourceList>(`pokemon?limit=${limit}&offset=${offset}`);
-  return response.data;
+  return fetchPokeApi<NamedAPIResourceList>(`pokemon?limit=${limit}&offset=${offset}`);
 };
 
 export const getPokemonDetail = async (idOrName: string | number): Promise<PokemonDetail> => {
-  const response = await pokeApiClient.get<PokemonDetail>(`pokemon/${idOrName}`);
-  return response.data;
+  return fetchPokeApi<PokemonDetail>(`pokemon/${idOrName}`);
 };
 
 export const getPokemonSpecies = async (idOrName: string | number): Promise<PokemonSpecies> => {
-  const response = await pokeApiClient.get<PokemonSpecies>(`pokemon-species/${idOrName}`);
-  return response.data;
+  return fetchPokeApi<PokemonSpecies>(`pokemon-species/${idOrName}`);
 };
 
 export const getEvolutionChain = async (url: string): Promise<EvolutionChainResponse> => {
-  const cleanUrl = url.replace('https://pokeapi.co/api/v2/', '');
-  const response = await pokeApiClient.get<EvolutionChainResponse>(cleanUrl);
-  return response.data;
+  return fetchPokeApi<EvolutionChainResponse>(url);
 };
 
 export interface AbilityDetail {
@@ -47,15 +71,12 @@ export interface AbilityDetail {
 
 export const getAbilityDetail = async (idOrName: string | number): Promise<AbilityDetail> => {
   const nameOrId = typeof idOrName === 'string' ? idOrName.toLowerCase().replace(' ', '-') : idOrName;
-  const response = await pokeApiClient.get(`ability/${nameOrId}`);
-  const data = response.data;
+  const data = await fetchPokeApi<any>(`ability/${nameOrId}`);
   
-  // Find English effect
   const effectEntry = data.effect_entries?.find((e: any) => e.language.name === 'en');
   const effect = effectEntry ? effectEntry.effect : '';
   const shortEffect = effectEntry ? effectEntry.short_effect : '';
   
-  // Find English flavor text
   const flavorEntry = data.flavor_text_entries?.find((e: any) => e.language.name === 'en');
   const flavorText = flavorEntry ? flavorEntry.flavor_text : 'No description available.';
   
@@ -69,25 +90,21 @@ export const getAbilityDetail = async (idOrName: string | number): Promise<Abili
 };
 
 export const getPokemonLocationEncounters = async (id: number): Promise<any[]> => {
-  const response = await pokeApiClient.get(`pokemon/${id}/encounters`);
-  return response.data;
+  return fetchPokeApi<any[]>(`pokemon/${id}/encounters`);
 };
 
 export const getMoveDetail = async (name: string): Promise<any> => {
   const cleanName = name.toLowerCase().replace(' ', '-');
-  const response = await pokeApiClient.get(`move/${cleanName}`);
-  return response.data;
+  return fetchPokeApi<any>(`move/${cleanName}`);
 };
 
 export const getItemDetail = async (idOrName: string | number): Promise<any> => {
   const nameOrId = typeof idOrName === 'string' ? idOrName.toLowerCase().replace(' ', '-') : idOrName;
-  const response = await pokeApiClient.get(`item/${nameOrId}`);
-  return response.data;
+  return fetchPokeApi<any>(`item/${nameOrId}`);
 };
 
 export const getItemList = async (limit: number = 20, offset: number = 0): Promise<any> => {
-  const response = await pokeApiClient.get(`item?limit=${limit}&offset=${offset}`);
-  return response.data;
+  return fetchPokeApi<any>(`item?limit=${limit}&offset=${offset}`);
 };
 
 export const getPokemonThatLearnMove = async (moveName: string): Promise<any[]> => {
@@ -106,12 +123,11 @@ export const getPokemonThatLearnMove = async (moveName: string): Promise<any[]> 
       }
     }
   `;
-  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { 
-    query,
-    variables: { moveName: moveName.toLowerCase().replace(' ', '-') }
+  const response = await fetchGraphQL<any>(query, {
+    moveName: moveName.toLowerCase().replace(' ', '-')
   });
   
-  const raw = response.data.data.pokemon_v2_pokemonmove || [];
+  const raw = response.data?.pokemon_v2_pokemonmove || [];
   const seen = new Set();
   const list: any[] = [];
   raw.forEach((r: any) => {
@@ -146,12 +162,11 @@ export const getPokemonByAbility = async (abilityName: string): Promise<any[]> =
       }
     }
   `;
-  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { 
-    query,
-    variables: { abilityName: abilityName.toLowerCase().replace(' ', '-') }
+  const response = await fetchGraphQL<any>(query, {
+    abilityName: abilityName.toLowerCase().replace(' ', '-')
   });
   
-  const raw = response.data.data.pokemon_v2_ability[0]?.pokemon_v2_pokemonabilities || [];
+  const raw = response.data?.pokemon_v2_ability[0]?.pokemon_v2_pokemonabilities || [];
   const seen = new Set();
   const list: any[] = [];
   raw.forEach((r: any) => {
@@ -179,26 +194,25 @@ export const getPokemonEvolvingWithItem = async (itemName: string): Promise<any[
       }
     }
   `;
-  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', {
-    query,
-    variables: { itemName: itemName.toLowerCase().replace(' ', '-') }
+  const response = await fetchGraphQL<any>(query, {
+    itemName: itemName.toLowerCase().replace(' ', '-')
   });
-  const raw = response.data.data.pokemon_v2_pokemonevolution || [];
+  
+  const raw = response.data?.pokemon_v2_pokemonevolution || [];
   const seen = new Set();
   const list: any[] = [];
   raw.forEach((r: any) => {
-    const s = r.pokemon_v2_pokemonspecy;
-    if (s && !seen.has(s.id)) {
-      seen.add(s.id);
-      list.push({ 
-        id: s.id, 
-        name: s.name.replace('-', ' ')
+    const p = r.pokemon_v2_pokemonspecy;
+    if (p && !seen.has(p.id)) {
+      seen.add(p.id);
+      list.push({
+        id: p.id,
+        name: p.name.replace('-', ' ')
       });
     }
   });
   return list;
 };
-
 
 export interface GqlPokemonSearchData {
   id: number;
@@ -251,10 +265,8 @@ export const getAllPokemonSearchData = async (): Promise<GqlPokemonSearchData[]>
     }
   `;
 
-  // We use standard axios directly to beta graphql
-  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { query });
-  
-  const rawData = response.data.data.pokemon_v2_pokemon;
+  const response = await fetchGraphQL<any>(query);
+  const rawData = response.data?.pokemon_v2_pokemon || [];
   
   return rawData.map((p: any) => {
     const types = p.pokemon_v2_pokemontypes.map((pt: any) => pt.pokemon_v2_type.name);
@@ -276,7 +288,7 @@ export const getAllPokemonSearchData = async (): Promise<GqlPokemonSearchData[]>
       name: p.name,
       types: types,
       stats: stats,
-      generation_id: p.pokemon_v2_pokemonspecy?.generation_id || 1, // fallback to Gen 1 if missing
+      generation_id: p.pokemon_v2_pokemonspecy?.generation_id || 1,
       height: p.height / 10,
       weight: p.weight / 10,
       base_exp: p.base_experience || 0,
@@ -320,21 +332,14 @@ export const getPokemonMovesData = async (id: number): Promise<{ levelUp: Pokemo
     }
   `;
 
-  const response = await axios.post('https://beta.pokeapi.co/graphql/v1beta', { 
-    query, 
-    variables: { pokeId: id } 
-  });
+  const response = await fetchGraphQL<any>(query, { pokeId: id });
+  const rawMoves = response.data?.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonmoves || [];
   
-  const rawMoves = response.data.data.pokemon_v2_pokemon[0]?.pokemon_v2_pokemonmoves || [];
-  
-  // We use a Map to keep only one unique instance of each move per learn method (ignoring version duplicates)
   const levelUpMap = new Map<string, PokemonMoveData>();
   const machineMap = new Map<string, PokemonMoveData>();
 
   rawMoves.forEach((m: any) => {
     const method = m.pokemon_v2_movelearnmethod?.name || 'unknown';
-    // We only care about level-up, machine, egg, tutor. 
-    // Usually 'level-up' vs the rest.
     const moveData: PokemonMoveData = {
       name: m.pokemon_v2_move?.name || 'unknown',
       level: m.level || 0,
@@ -346,7 +351,6 @@ export const getPokemonMovesData = async (id: number): Promise<{ levelUp: Pokemo
     };
 
     if (method === 'level-up') {
-      // Keep earliest level learned
       if (!levelUpMap.has(moveData.name) || levelUpMap.get(moveData.name)!.level > moveData.level) {
         levelUpMap.set(moveData.name, moveData);
       }

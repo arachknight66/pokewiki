@@ -84,7 +84,6 @@ export default function ProfilePage() {
                     fill
                     sizes="(max-width: 128px) 100vw, 128px"
                     className="object-cover"
-                    unoptimized
                   />
                 </div>
               </div>

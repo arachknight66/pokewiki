@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Pokemon, PokemonType } from '@/lib/types';
 import { checkTypeSynergy, TYPE_MATCHUPS, TYPE_COLORS } from '@/lib/type-system';
 import { usePrefersReducedMotion } from '@/hooks';
+import { useShinyMode } from '@/app/ShinyModeContext';
 import { forceSimulation, forceLink, forceManyBody, forceCenter } from 'd3-force';
 
 interface GraphNode {
@@ -58,6 +59,7 @@ function getPokemonWeaknesses(pokemon: Pokemon): PokemonType[] {
 
 export default function SynergyGraph({ pokemonList }: SynergyGraphProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { isShinyMode } = useShinyMode();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -83,10 +85,12 @@ export default function SynergyGraph({ pokemonList }: SynergyGraphProps) {
     const initialNodes: GraphNode[] = pokemonList.map((p, idx) => {
       const angle = (idx / pokemonList.length) * 2 * Math.PI - Math.PI / 2;
       const radius = 65;
+      const normalSprite = p.sprites?.officialArtwork || '';
+      const shinySprite = p.sprites?.officialArtworkShiny || normalSprite;
       return {
         id: p.id.toString(),
         name: p.name,
-        sprite: p.sprites?.officialArtwork || '',
+        sprite: isShinyMode ? shinySprite : normalSprite,
         type1: p.type1,
         type2: p.type2,
         x: centerX + radius * Math.cos(angle),
@@ -182,7 +186,7 @@ export default function SynergyGraph({ pokemonList }: SynergyGraphProps) {
       simulation.stop();
       cancelAnimationFrame(animFrameId);
     };
-  }, [pokemonList, prefersReducedMotion, centerX, centerY]);
+  }, [pokemonList, prefersReducedMotion, centerX, centerY, isShinyMode]);
 
   if (pokemonList.length < 2) {
     return null;
@@ -320,7 +324,6 @@ export default function SynergyGraph({ pokemonList }: SynergyGraphProps) {
                     width={40}
                     height={40}
                     className="object-contain w-full h-full select-none"
-                    unoptimized
                   />
                 ) : (
                   <span className="text-[10px] font-black">{node.name.substring(0, 3)}</span>

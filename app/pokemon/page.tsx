@@ -14,6 +14,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
 import { getPokemonCryUrl } from '@/lib/sprites';
+import { useShinyMode } from '@/app/ShinyModeContext';
 
 
 export default function PokemonPage() {
@@ -22,6 +23,7 @@ export default function PokemonPage() {
   const [selectedGen, setSelectedGen] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const { playingId, playCry } = useAudioPlayer();
+  const { isShinyMode } = useShinyMode();
 
   const { data: pokemonListData, isLoading } = usePokemonList({
     page,
@@ -186,7 +188,7 @@ export default function PokemonPage() {
       {/* Results */}
       {isLoading ? (
         <PokeballLoader message="Catching Pokémon data..." />
-      ) : pokemonListData?.data?.length === 0 ? (
+      ) : (pokemonListData?.data?.length === 0 && !searchTerm.match(/missingno/i)) ? (
         <Card className="text-center py-16">
           <p className="text-2xl font-black font-display mb-2">No Pokémon found</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -196,6 +198,40 @@ export default function PokemonPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
+            {searchTerm.match(/missingno/i) && (
+              <Link href={"/pokemon/0" as any} className="col-span-1">
+                <div
+                  className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer flat-card-hover border-4 border-dashed border-[var(--text-primary)]"
+                  style={{
+                    background: 'var(--bg-card)',
+                    boxShadow: '4px 4px 0px var(--text-primary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = `6px 6px 0px var(--text-primary)`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '4px 4px 0px var(--text-primary)';
+                  }}
+                >
+                  <div className="h-2 w-full bg-red-600" />
+                  <div className="relative flex items-center justify-center pt-4 pb-2 h-36">
+                    <span className="text-5xl font-black font-mono animate-pulse">?</span>
+                  </div>
+                  <div className="relative z-10 px-3.5 pb-3.5 space-y-1.5 font-mono">
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-500">
+                      #000
+                    </p>
+                    <h3 className="text-sm font-extrabold capitalize leading-tight text-[var(--pokedex-red)]">
+                      MissingNo.
+                    </h3>
+                    <div className="flex gap-1 text-[9px] text-zinc-400 font-extrabold">
+                      <span className="px-1.5 py-0.5 border border-zinc-700 bg-zinc-800 rounded">?</span>
+                      <span className="px-1.5 py-0.5 border border-zinc-700 bg-zinc-800 rounded">TYPE/NULL</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )}
             {pokemonListData?.data?.map((pokemon: Pokemon) => {
               const bgColor = TYPE_COLORS[pokemon.type1 as PokemonType] || '#A8A878';
               const rgb = hexToRgb(bgColor);
@@ -250,12 +286,11 @@ export default function PokemonPage() {
                       />
                       {pokemon.sprites?.officialArtwork && (
                         <Image
-                          src={pokemon.sprites.officialArtwork}
+                          src={isShinyMode ? (pokemon.sprites.officialArtworkShiny || pokemon.sprites.officialArtwork) : pokemon.sprites.officialArtwork}
                           alt={pokemon.name}
                           width={120}
                           height={120}
                           className="relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:drop-shadow-2xl transition-all duration-300 ease-smooth object-contain"
-                          unoptimized
                         />
                       )}
                     </div>

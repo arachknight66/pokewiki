@@ -16,17 +16,12 @@ import { PokemonType } from '@/lib/types';
 import { TYPE_MATCHUPS, analyzeDefensiveProfile } from '@/lib/type-system';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { useShinyMode } from '@/app/ShinyModeContext';
 
-// Recharts components (lazy or dynamically loaded/mounted to prevent SSR hydration mismatches)
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
+const CompareChart = dynamic(() => import('@/components/pokemon/CompareChart'), {
+  ssr: false,
+});
 
 const statsKeys = [
   { key: 'hp', label: 'HP' },
@@ -48,6 +43,7 @@ export default function ComparePage() {
 function ComparePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isShinyMode } = useShinyMode();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
@@ -204,16 +200,15 @@ function ComparePageContent() {
               <button
                 key={poke.id}
                 onClick={() => addPokemon(poke.id)}
-                className="w-full text-left p-2 hover:bg-white/5 rounded-lg flex items-center justify-between text-xs font-black capitalize border border-transparent hover:border-[var(--border-color)]"
+                className="w-full flex items-center justify-between p-2 hover:bg-[var(--bg-secondary)] rounded-xl font-bold transition-all text-xs border border-transparent hover:border-[var(--border-color)]"
               >
                 <div className="flex items-center gap-2">
                   <Image
-                    src={poke.sprites?.front2d}
+                    src={isShinyMode ? (poke.sprites?.frontShiny2d || poke.sprites?.front2d) : poke.sprites?.front2d}
                     alt={poke.name}
                     width={32}
                     height={32}
                     className="object-contain"
-                    unoptimized
                   />
                   <span>{poke.name}</span>
                 </div>
@@ -245,12 +240,11 @@ function ComparePageContent() {
                 <>
                   <div className="w-16 h-16 relative flex items-center justify-center mb-2 bg-white/5 dark:bg-black/20 rounded-full border">
                     <Image
-                      src={p.sprites.front2d}
+                      src={isShinyMode ? (p.sprites.frontShiny2d || p.sprites.front2d) : p.sprites.front2d}
                       alt={p.name}
                       width={56}
                       height={56}
                       className="object-contain"
-                      unoptimized
                     />
                   </div>
                   <h3 className="font-extrabold capitalize text-sm truncate max-w-[120px]">{p.name}</h3>
@@ -284,28 +278,7 @@ function ComparePageContent() {
           <Card className="flex flex-col items-center justify-center">
             <h2 className="text-lg font-black font-display mb-4 self-start">📊 Radar Stats Layout</h2>
             {mounted ? (
-              <ResponsiveContainer width="100%" height={320}>
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-                  <PolarGrid stroke="var(--border-color)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-primary)', fontWeight: 'bold', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 255]} tick={{ fill: 'var(--text-muted)', fontSize: 9 }} />
-                  {pokemonList.map((p) => {
-                    const color = TYPE_COLORS[p.pokemon.type1 as PokemonType] || '#A8A878';
-                    return (
-                      <Radar
-                        key={p.pokemon.id}
-                        name={p.pokemon.name}
-                        dataKey={p.pokemon.name}
-                        stroke={color}
-                        fill={color}
-                        fillOpacity={0.2}
-                        strokeWidth={2.5}
-                      />
-                    );
-                  })}
-                  <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'capitalize' }} />
-                </RadarChart>
-              </ResponsiveContainer>
+              <CompareChart chartData={chartData} pokemonList={pokemonList} />
             ) : (
               <div className="h-64 flex items-center justify-center">Loading chart components...</div>
             )}

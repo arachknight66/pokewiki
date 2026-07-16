@@ -16,6 +16,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
 import { Toast } from '@/components/ui/Toast';
+import { useShinyMode } from '@/app/ShinyModeContext';
 import dynamic from 'next/dynamic';
 
 const SynergyGraph = dynamic(() => import('@/components/team/SynergyGraph'), {
@@ -26,6 +27,7 @@ const SynergyGraph = dynamic(() => import('@/components/team/SynergyGraph'), {
 
 export default function TeamBuilderPage() {
   const { user } = useAuth();
+  const { isShinyMode } = useShinyMode();
   const createTeamMutation = useCreateTeam();
   const queryClient = useQueryClient();
 
@@ -226,12 +228,11 @@ export default function TeamBuilderPage() {
                           <div className="absolute inset-0 m-auto w-12 h-12 rounded-full border-2 opacity-50" style={{ backgroundColor: bgColor, borderColor: 'var(--text-primary)' }} />
                           {poke.sprites?.officialArtwork && (
                             <Image
-                              src={poke.sprites.officialArtwork}
+                              src={isShinyMode ? (poke.sprites.officialArtworkShiny || poke.sprites.officialArtwork) : poke.sprites.officialArtwork}
                               alt={poke.name}
                               width={64}
                               height={64}
                               className="relative z-10 object-contain mb-2 transition-transform group-hover:-translate-y-1"
-                              unoptimized
                             />
                           )}
                         </div>
@@ -307,12 +308,11 @@ export default function TeamBuilderPage() {
                           <div className="w-10 h-10 flex-shrink-0 bg-white/10 rounded-lg p-1">
                             {poke.sprites?.officialArtwork && (
                               <Image
-                                src={poke.sprites.officialArtwork}
+                                src={isShinyMode ? (poke.sprites.officialArtworkShiny || poke.sprites.officialArtwork) : poke.sprites.officialArtwork}
                                 alt={poke.name}
                                 width={32}
                                 height={32}
                                 className="object-contain w-full h-full group-hover:scale-110 transition-transform"
-                                unoptimized
                               />
                             )}
                           </div>

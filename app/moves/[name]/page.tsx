@@ -1,165 +1,83 @@
 /**
- * Move Detail Page
+ * Move Detail Server Page (Static ISR + SEO Metadata)
  */
-'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useMoveDetail, usePokemonThatLearnMove } from '@/hooks';
+import { Metadata } from 'next';
+import { getMoveDetail, getPokemonThatLearnMove } from '@/lib/api/pokeApi';
+import MoveDetailClient from './MoveDetailClient';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import PokeballLoader from '@/components/ui/PokeballLoader';
-import { MoveEffectivenessPreview } from '@/components/pokemon/MoveEffectivenessPreview';
-import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
-import { PokemonType } from '@/lib/types';
 import Link from 'next/link';
-import Image from 'next/image';
-import { getPokemonSprites } from '@/lib/sprites';
 
-export default function MoveDetailPage() {
-  const params = useParams();
-  const name = params.name as string;
-  const router = useRouter();
+export const revalidate = 86400; // 24 hours ISR
 
-  const { data: move, isLoading: moveLoading, error } = useMoveDetail(name);
-  const { data: pokemonList, isLoading: listLoading } = usePokemonThatLearnMove(name);
+interface PageProps {
+  params: { name: string };
+}
 
-  if (moveLoading) {
-    return <PokeballLoader message="Analyzing move database..." />;
+// Generate static pre-rendered routes for popular moves
+export async function generateStaticParams() {
+  const popularMoves = [
+    'tackle',
+    'growl',
+    'thunderbolt',
+    'surf',
+    'flamethrower',
+    'psychic',
+    'hyper-beam',
+    'ice-beam',
+    'earthquake'
+  ];
+  return popularMoves.map((name) => ({ name }));
+}
+
+async function fetchMoveData(name: string) {
+  try {
+    const move = await getMoveDetail(name);
+    if (!move) return null;
+    const pokemonList = await getPokemonThatLearnMove(name).catch(() => []);
+    return { move, pokemonList };
+  } catch (err) {
+    console.error('Error fetching move server-side:', err);
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const data = await fetchMoveData(params.name);
+  if (!data) {
+    return { title: 'Move Not Found | PokéWiki' };
   }
 
-  if (error || !move) {
+  const { move } = data;
+  const moveName = move.name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const effectText = move.effect_entries?.find((e: any) => e.language.name === 'en')?.short_effect || 
+                     move.flavor_text_entries?.find((f: any) => f.language.name === 'en')?.flavor_text || 
+                     'No details available.';
+
+  return {
+    title: `${moveName} — Move Details — PokéWiki`,
+    description: effectText.replace(/\$effect_chance%?/g, `${move.effect_chance}%`),
+  };
+}
+
+export default async function MovePage({ params }: PageProps) {
+  const data = await fetchMoveData(params.name);
+
+  if (!data) {
     return (
       <div className="max-w-4xl mx-auto py-16">
         <Card className="text-center">
           <p className="text-2xl font-black font-display mb-2">Move not found</p>
-          <Button onClick={() => router.back()} variant="outline" className="mt-3">
-            ← Go Back
-          </Button>
+          <Link href={"/pokemon" as any}>
+            <button className="mt-3 px-4 py-2 border-2 border-[var(--text-primary)] rounded-xl font-bold bg-[var(--bg-secondary)] shadow-[2px_2px_0px_var(--text-primary)]">
+              ← Go Back
+            </button>
+          </Link>
         </Card>
       </div>
     );
   }
 
-  const bgColor = TYPE_COLORS[move.type.name as PokemonType] || '#A8A878';
-  const rgb = hexToRgb(bgColor);
-  const effectText = move.effect_entries?.find((e: any) => e.language.name === 'en')?.effect || 
-                     move.flavor_text_entries?.find((f: any) => f.language.name === 'en')?.flavor_text || 
-                     'No details available.';
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-6 stagger-children">
-      {/* Back button */}
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={() => router.back()}
-        className="flex items-center gap-2"
-      >
-        ← Back
-      </Button>
-
-      {/* Hero Card */}
-      <div
-        className="rounded-[2rem] overflow-hidden relative transition-all duration-300"
-        style={{
-          background: 'var(--bg-card)',
-          border: `4px solid var(--text-primary)`,
-          boxShadow: `12px 12px 0px var(--text-primary)`,
-        }}
-      >
-        {/* Decorative background stripe */}
-        <div className="h-2 w-full" style={{ backgroundColor: bgColor }} />
-
-        <div className="p-6 lg:p-10 space-y-6 relative z-10">
-          <div>
-            <span 
-              className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg text-white border border-[var(--text-primary)] shadow-sm"
-              style={{ backgroundColor: bgColor }}
-            >
-              {move.type.name}
-            </span>
-            <h1 className="text-4xl lg:text-5xl font-black font-display capitalize mt-3">
-              {move.name.replace(/-/g, ' ')}
-            </h1>
-          </div>
-
-          <p className="text-base leading-relaxed max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
-            {effectText.replace(/\$effect_chance%?/g, `${move.effect_chance}%`)}
-          </p>
-
-          {/* Stats HUD */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-            {[
-              { label: 'Category', val: move.damage_class?.name || 'status', icon: '⚡' },
-              { label: 'Power', val: move.power || '—', icon: '💥' },
-              { label: 'Accuracy', val: move.accuracy ? `${move.accuracy}%` : '—', icon: '🎯' },
-              { label: 'PP', val: move.pp, icon: '🔋' }
-            ].map(item => (
-              <div 
-                key={item.label}
-                className="p-4 rounded-xl border-2 text-center"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-color-bold)',
-                  boxShadow: '2px 2px 0px var(--text-primary)'
-                }}
-              >
-                <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-                  {item.icon} {item.label}
-                </p>
-                <p className="text-xl font-black font-display capitalize mt-1">{item.val}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Effectiveness Widget */}
-      <Card>
-        <MoveEffectivenessPreview moveType={move.type.name as PokemonType} />
-      </Card>
-
-      {/* Learned by Section */}
-      <Card>
-        <h2 className="text-xl font-black font-display mb-4 flex items-center gap-2">
-          <span style={{ color: 'var(--accent-secondary)' }}>⬣</span> Learned By
-        </h2>
-        
-        {listLoading ? (
-          <div className="text-xs font-bold text-muted animate-pulse">Searching Pokédex...</div>
-        ) : pokemonList && pokemonList.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[400px] overflow-y-auto pr-2">
-            {pokemonList.map((poke: any) => {
-              const sprites = getPokemonSprites(poke.id);
-              return (
-                <Link key={poke.id} href={`/pokemon/${poke.id}`}>
-                  <div 
-                    className="flex flex-col items-center p-3 rounded-xl transition-all duration-300 hover:scale-105 border-2 text-center select-none cursor-pointer"
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-color)',
-                      boxShadow: '1px 1px 0px var(--text-primary)'
-                    }}
-                  >
-                    <Image 
-                      src={sprites.front2d}
-                      alt={poke.name}
-                      width={48}
-                      height={48}
-                      className="object-contain mb-1"
-                      unoptimized
-                    />
-                    <p className="font-extrabold capitalize text-xs truncate max-w-[90px]">{poke.name}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm font-bold opacity-60">No Pokémon learn this move naturally.</p>
-        )}
-      </Card>
-    </div>
-  );
+  return <MoveDetailClient initialData={data} />;
 }

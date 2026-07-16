@@ -10,9 +10,29 @@ import BackToTop from '@/components/BackToTop';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://pokewiki.com'),
   title: 'PokéWiki — Pokémon Encyclopedia',
   description: 'Browse Pokémon with detailed stats, sprites, Pokédex entries from every game, and build competitive teams.',
   keywords: ['pokémon', 'pokédex', 'pokedex', 'wiki', 'sprites', 'team-builder'],
+  openGraph: {
+    title: 'PokéWiki — Pokémon Encyclopedia',
+    description: 'Browse Pokémon with detailed stats, sprites, Pokédex entries from every game, and build competitive teams.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'PokéWiki — Pokémon Encyclopedia',
+      }
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PokéWiki — Pokémon Encyclopedia',
+    description: 'Browse Pokémon with detailed stats, sprites, Pokédex entries from every game, and build competitive teams.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({
