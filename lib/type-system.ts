@@ -292,8 +292,25 @@ export const TYPE_COLORS: Record<PokemonType, string> = {
  * Get contrast-friendly text color for type badge
  */
 export function getTypeTextColor(type: PokemonType): string {
-  const darkTypes = ['normal', 'fire', 'grass', 'bug', 'rock', 'ghost', 'dark'];
-  return darkTypes.includes(type) ? '#ffffff' : '#000000';
+  const hex = TYPE_COLORS[type];
+  if (!hex) return '#ffffff';
+
+  const rHex = parseInt(hex.slice(1, 3), 16);
+  const gHex = parseInt(hex.slice(3, 5), 16);
+  const bHex = parseInt(hex.slice(5, 7), 16);
+
+  const getL = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+
+  const r = getL(rHex);
+  const g = getL(gHex);
+  const b = getL(bHex);
+
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+  return L > 0.179 ? '#000000' : '#ffffff';
 }
 
 /**

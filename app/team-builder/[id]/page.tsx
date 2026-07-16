@@ -101,8 +101,21 @@ export default function TeamViewerPage() {
           <span className="text-xl font-bold text-green-600 dark:text-green-400">{team.ratingScore || "N/A"}</span>
         </Card>
         <Card className="p-4 flex flex-col items-center justify-center">
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Created At</span>
-          <span className="text-sm font-bold">{new Date(team.createdAt).toLocaleDateString()}</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
+            {team.updatedAt && Math.abs(new Date(team.updatedAt).getTime() - new Date(team.createdAt).getTime()) > 5000 
+              ? 'Updated At' 
+              : 'Created At'}
+          </span>
+          <span className="text-sm font-bold">
+            {team.updatedAt && Math.abs(new Date(team.updatedAt).getTime() - new Date(team.createdAt).getTime()) > 5000 
+              ? new Date(team.updatedAt).toLocaleDateString()
+              : new Date(team.createdAt).toLocaleDateString()}
+          </span>
+          {team.updatedAt && Math.abs(new Date(team.updatedAt).getTime() - new Date(team.createdAt).getTime()) > 5000 && (
+            <span className="text-[9px] font-semibold text-gray-400 mt-0.5">
+              Created: {new Date(team.createdAt).toLocaleDateString()}
+            </span>
+          )}
         </Card>
         <Card className="p-4 flex flex-col items-center justify-center">
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Views</span>

@@ -383,3 +383,119 @@ export function usePokemonEvolvingWithItem(itemName: string) {
   });
 }
 
+export function usePrefersReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const listener = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    } else {
+      mediaQuery.addListener(listener);
+      return () => mediaQuery.removeListener(listener);
+    }
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+export function useVoteReply() {
+  return useMutation({
+    mutationFn: async ({ replyId, voteType }: { replyId: string; voteType: 'upvote' | 'downvote' }) => {
+      const response = await axios.post(`/api/forum/replies/${replyId}/vote`, { voteType });
+      return response.data;
+    },
+  });
+}
+
+export function useReportContent() {
+  return useMutation({
+    mutationFn: async (data: { targetType: 'thread' | 'reply'; targetId: string; reason?: string }) => {
+      const response = await axios.post(`/api/forum/report`, data);
+      return response.data;
+    },
+  });
+}
+
+export function useEditReply() {
+  return useMutation({
+    mutationFn: async ({ replyId, body }: { replyId: string; body: string }) => {
+      const response = await axios.patch(`/api/forum/replies/${replyId}`, { body });
+      return response.data;
+    },
+  });
+}
+
+export function useTournaments({ status = 'open', page = 1, pageSize = 20 } = {}) {
+  return useQuery({
+    queryKey: ['tournaments', { status, page, pageSize }],
+    queryFn: async () => {
+      const response = await axios.get(`/api/tournaments?status=${status}&page=${page}&pageSize=${pageSize}`);
+      return response.data;
+    },
+  });
+}
+
+export function useTournament(id: string) {
+  return useQuery({
+    queryKey: ['tournament', id],
+    queryFn: async () => {
+      const response = await axios.get(`/api/tournaments/${id}`);
+      return response.data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useTournamentLeaderboard(id: string) {
+  return useQuery({
+    queryKey: ['tournament-leaderboard', id],
+    queryFn: async () => {
+      const response = await axios.get(`/api/tournaments/${id}/leaderboard`);
+      return response.data.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateTournament() {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const response = await axios.post(`/api/tournaments`, data);
+      return response.data.data;
+    },
+  });
+}
+
+export function useSubmitTeamToTournament() {
+  return useMutation({
+    mutationFn: async ({ tournamentId, teamId }: { tournamentId: string; teamId: string }) => {
+      const response = await axios.post(`/api/tournaments/${tournamentId}/submit`, { teamId });
+      return response.data.data;
+    },
+  });
+}
+
+export function useProfileStats() {
+  return useQuery({
+    queryKey: ['profile-stats'],
+    queryFn: async () => {
+      const response = await axios.get('/api/users/me/stats');
+      return response.data.data;
+    },
+  });
+}
+
+
+
+
+

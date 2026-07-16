@@ -29,6 +29,7 @@ export default function BackToTop() {
         boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
       }}
       title="Back to top"
+      aria-label="Back to top"
     >
       <div className="absolute inset-0 rounded-full border-2 border-white/20 pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-3 border-[#1a1a2e] bg-white group-hover:bg-amber-400 transition-colors" />

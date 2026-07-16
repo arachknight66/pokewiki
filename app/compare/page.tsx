@@ -38,6 +38,14 @@ const statsKeys = [
 ];
 
 export default function ComparePage() {
+  return (
+    <React.Suspense fallback={<div className="flex justify-center py-20"><PokeballLoader /></div>}>
+      <ComparePageContent />
+    </React.Suspense>
+  );
+}
+
+function ComparePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);

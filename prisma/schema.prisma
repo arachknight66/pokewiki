@@ -28,6 +28,10 @@ model User {
   forum_threads  ForumThread[]
   forum_replies  ForumReply[]
   teams          Team[]
+  forum_votes    ForumVote[]
+  tournaments    Tournament[]
+  tournament_submissions TournamentSubmission[]
+  forum_reports  ForumReport[]
 
   @@map("users")
 }
@@ -77,6 +81,7 @@ model ForumReply {
 
   thread        ForumThread @relation(fields: [thread_id], references: [id], onDelete: Cascade)
   user          User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  votes         ForumVote[]
 
   @@map("forum_replies")
   @@index([thread_id, created_at(sort: Asc)])
@@ -103,9 +108,76 @@ model Team {
   updated_at    DateTime? @default(now()) @db.Timestamp(6)
 
   user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  tournament_submissions TournamentSubmission[]
 
   @@map("teams")
   @@index([user_id])
   @@index([rating_score(sort: Desc)])
   @@index([created_at(sort: Desc)])
+}
+
+model ForumVote {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  reply_id   String    @db.Uuid
+  vote_type  String    @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reply      ForumReply @relation(fields: [reply_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, reply_id])
+  @@map("forum_votes")
+}
+
+model Tournament {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_by       String    @db.Uuid
+  name             String    @db.VarChar(150)
+  description      String?   @db.Text
+  format           String?   @default("OU") @db.VarChar(50)
+  status           String?   @default("open") @db.VarChar(50)
+  max_participants Int?      @default(64)
+  start_date       DateTime? @db.Timestamp(6)
+  end_date         DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  creator          User      @relation(fields: [created_by], references: [id], onDelete: Cascade)
+  submissions      TournamentSubmission[]
+
+  @@map("tournaments")
+}
+
+model TournamentSubmission {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tournament_id         String    @db.Uuid
+  user_id               String    @db.Uuid
+  team_id               String    @db.Uuid
+  rating_at_submission  Decimal?  @db.Decimal(5, 2)
+  wins                  Int?      @default(0)
+  losses                Int?      @default(0)
+  elo_rating            Decimal?  @default(1600) @db.Decimal(6, 2)
+  submitted_at          DateTime? @default(now()) @db.Timestamp(6)
+
+  tournament            Tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  user                  User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  team                  Team       @relation(fields: [team_id], references: [id], onDelete: Cascade)
+
+  @@unique([tournament_id, user_id, team_id])
+  @@map("tournament_submissions")
+}
+
+model ForumReport {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporter_id String    @db.Uuid
+  target_type String    @db.VarChar(50)
+  target_id   String    @db.Uuid
+  reason      String?   @db.VarChar(255)
+  status      String?   @default("pending") @db.VarChar(20)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  reporter    User      @relation(fields: [reporter_id], references: [id], onDelete: Cascade)
+
+  @@map("forum_reports")
 }

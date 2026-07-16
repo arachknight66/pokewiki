@@ -150,3 +150,10 @@ export const PaginationSchema = z.object({
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().min(1).max(2000).default(20),
 });
+
+export const CreateReportSchema = z.object({
+  targetType: z.enum(['thread', 'reply']),
+  targetId: z.string().uuid('Invalid target ID'),
+  reason: z.string().max(255, 'Reason must be less than 255 characters').optional(),
+});
+

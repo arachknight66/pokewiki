@@ -33,6 +33,9 @@ export async function GET(
       data: { views: { increment: 1 } }
     });
     
+    const session = await getServerSession(authOptions);
+    const userId = session?.user ? (session.user as any).id : null;
+
     const replies = await prisma.forumReply.findMany({
       where: { thread_id: threadId },
       orderBy: { created_at: 'asc' },
@@ -40,6 +43,21 @@ export async function GET(
         user: { select: { username: true } },
       }
     });
+
+    let userVotes: Record<string, 'upvote' | 'downvote'> = {};
+    if (userId) {
+      const votes = await prisma.forumVote.findMany({
+        where: {
+          user_id: userId,
+          reply: {
+            thread_id: threadId
+          }
+        }
+      });
+      votes.forEach(v => {
+        userVotes[v.reply_id] = v.vote_type as 'upvote' | 'downvote';
+      });
+    }
 
     const mappedThread = {
       ...thread,
@@ -49,6 +67,7 @@ export async function GET(
     const mappedReplies = replies.map((r: any) => ({
       ...r,
       username: r.user.username,
+      userVote: userVotes[r.id] || null,
     }));
     
     return NextResponse.json({

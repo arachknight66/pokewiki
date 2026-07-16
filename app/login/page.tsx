@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { Eye, EyeOff } from 'lucide-react';
 
 /* ── Inline SVG Pokéball ─────────────────────────────────────────────── */
 function PokeballSVG({ className }: { className?: string }) {
@@ -144,9 +145,10 @@ function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-100 transition-opacity z-10"
-                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showPassword}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>

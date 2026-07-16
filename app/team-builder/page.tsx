@@ -16,6 +16,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { TYPE_COLORS, hexToRgb } from '@/lib/type-system';
 import { Toast } from '@/components/ui/Toast';
+import dynamic from 'next/dynamic';
+
+const SynergyGraph = dynamic(() => import('@/components/team/SynergyGraph'), {
+  ssr: false,
+});
+
 
 
 export default function TeamBuilderPage() {
@@ -334,7 +340,7 @@ export default function TeamBuilderPage() {
 
         {/* Rating Panel — Battle Analysis */}
         <div className="space-y-6">
-          {ratingResult ? (
+          {ratingResult && selectedPokemon.length >= 2 ? (
             <Card className="sticky top-20 border-t-4" style={{ borderTopColor: getScoreColor(ratingResult.finalScore) }}>
               <h2 className="text-xl font-black font-display mb-6 text-center">
                  Battle Analysis
@@ -371,6 +377,14 @@ export default function TeamBuilderPage() {
                   style={{ background: getScoreColor(ratingResult.finalScore), boxShadow: `0 4px 10px ${getScoreColor(ratingResult.finalScore)}44` }}>
                   {ratingResult.finalScore >= 80 ? 'Elite Tier' : ratingResult.finalScore >= 60 ? 'Master' : 'Challenger'}
                 </div>
+              </div>
+
+              {/* Synergy Network Visualizer */}
+              <div className="border-2 border-[var(--text-primary)] rounded-2xl bg-[var(--bg-secondary)] p-2 mb-6">
+                <h3 className="font-extrabold text-[10px] uppercase tracking-[0.2em] mb-2 text-center text-[var(--text-secondary)]">
+                  ⚡ Synergy Network
+                </h3>
+                <SynergyGraph pokemonList={selectedPokemon} />
               </div>
 
               <div className="space-y-6">
@@ -432,18 +446,20 @@ export default function TeamBuilderPage() {
                 )}
 
                 {/* Findings — Anime Warning box */}
-                {ratingResult.warnings.length > 0 && (
+                {ratingResult.warnings.filter((warn: any) => warn.type !== 'weakness').length > 0 && (
                   <div className="p-4 rounded-xl border-2 border-dashed" style={{ borderColor: '#F59E0B', background: 'rgba(245, 158, 11, 0.04)' }}>
                     <h3 className="font-black text-xs uppercase tracking-widest mb-2" style={{ color: '#D97706' }}>
                       ⚡ Battle Insights
                     </h3>
                     <ul className="text-xs space-y-2 font-bold" style={{ color: 'var(--text-secondary)' }}>
-                      {ratingResult.warnings.map((warn: any, i: number) => (
-                        <li key={i} className="flex gap-2">
-                           <span className="shrink-0">•</span>
-                           <span>{warn.message}</span>
-                        </li>
-                      ))}
+                      {ratingResult.warnings
+                        .filter((warn: any) => warn.type !== 'weakness')
+                        .map((warn: any, i: number) => (
+                          <li key={i} className="flex gap-2">
+                             <span className="shrink-0">•</span>
+                             <span>{warn.message}</span>
+                          </li>
+                        ))}
                     </ul>
                   </div>
                 )}
@@ -457,11 +473,12 @@ export default function TeamBuilderPage() {
               </div>
               <p className="font-black font-display text-xl mb-2">Analysis Pending</p>
               <p className="text-xs font-bold leading-relaxed px-6" style={{ color: 'var(--text-muted)' }}>
-                Recruit Pokémon to your party to see battle metrics and synergy ratings
+                Recruit at least 2 Pokémon to your party to see battle metrics, synergy networks, and ratings
               </p>
             </Card>
           )}
         </div>
+
       </div>
 
       {/* Footer link */}

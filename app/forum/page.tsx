@@ -10,13 +10,23 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { 
+  Globe, 
+  Swords, 
+  Dna, 
+  BarChart4, 
+  Coffee, 
+  PenSquare, 
+  Inbox,
+  MessageSquare
+} from 'lucide-react';
 
 const CATEGORIES = [
-  { id: '', label: 'All Discussions', icon: '🌐' },
-  { id: 'strategy', label: 'Strategy', icon: '⚔️' },
-  { id: 'team-building', label: 'Team Building', icon: '🧬' },
-  { id: 'meta-discussion', label: 'Meta Discussion', icon: '📊' },
-  { id: 'general', label: 'General', icon: '🍵' },
+  { id: '', label: 'All Discussions', icon: Globe },
+  { id: 'strategy', label: 'Strategy', icon: Swords },
+  { id: 'team-building', label: 'Team Building', icon: Dna },
+  { id: 'meta-discussion', label: 'Meta Discussion', icon: BarChart4 },
+  { id: 'general', label: 'General', icon: Coffee },
 ];
 
 export default function ForumPage() {
@@ -40,8 +50,8 @@ export default function ForumPage() {
         </div>
         {user ? (
           <Link href="/forum/new">
-            <Button>
-              <span className="mr-2">✍️</span> Start New Discussion
+            <Button className="flex items-center gap-2">
+              <PenSquare size={16} /> Start New Discussion
             </Button>
           </Link>
         ) : (
@@ -59,6 +69,7 @@ export default function ForumPage() {
           </h3>
           {CATEGORIES.map((cat) => {
             const isActive = category === cat.id;
+            const Icon = cat.icon;
             return (
               <button
                 key={cat.id}
@@ -70,8 +81,10 @@ export default function ForumPage() {
                   border: `2px solid ${isActive ? 'var(--text-primary)' : 'var(--border-color)'}`,
                   boxShadow: isActive ? '2px 2px 0px var(--text-primary)' : 'none',
                 }}
+                aria-selected={isActive}
+                role="tab"
               >
-                <span>{cat.icon}</span>
+                <Icon size={18} aria-hidden="true" />
                 {cat.label}
               </button>
             );
@@ -99,13 +112,16 @@ export default function ForumPage() {
                 <Card hoverable className="group mb-4">
                   <div className="flex items-start gap-4">
                     <div 
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl border-2"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center border-2 flex-shrink-0"
                       style={{ 
                         backgroundColor: 'var(--bg-secondary)', 
                         borderColor: 'var(--border-color-bold)' 
                       }}
                     >
-                      {CATEGORIES.find(c => c.id === thread.category)?.icon || '💬'}
+                      {(() => {
+                        const Icon = CATEGORIES.find(c => c.id === thread.category)?.icon || MessageSquare;
+                        return <Icon size={20} className="text-[var(--text-secondary)]" aria-hidden="true" />;
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -139,8 +155,8 @@ export default function ForumPage() {
               </Link>
             ))
           ) : (
-            <Card className="text-center py-20 opacity-60">
-              <div className="text-4xl mb-4">📭</div>
+            <Card className="text-center py-20 bg-[var(--bg-card)] border-2 border-dashed border-[var(--border-color-bold)]">
+              <Inbox className="mx-auto mb-4 text-[var(--text-muted)] opacity-40" size={48} />
               <p className="font-black font-display text-lg mb-1">No discussions found in this category.</p>
               <p className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>Be the first to start a conversation!</p>
             </Card>

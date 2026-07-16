@@ -18,6 +18,9 @@ import { PokemonType } from '@/lib/types';
 import { useAudioPlayer, usePokemonLocationEncounters } from '@/hooks';
 import { getPokemonCryUrl } from '@/lib/sprites';
 import { EvolutionTree } from '@/components/pokemon/EvolutionTree';
+import InteractiveHeroCard from '@/components/pokemon/InteractiveHeroCard';
+import { ArrowLeft, Volume, Volume2, Sparkles } from 'lucide-react';
+
 
 
 type SpriteTab = 'artwork' | 'home3d' | 'animated' | 'classic';
@@ -98,19 +101,13 @@ export default function PokemonDetailPage() {
         href="/pokemon"
         className="inline-flex items-center gap-1.5 text-sm font-bold transition-all hover:translate-x-[-4px]"
         style={{ color: 'var(--pokedex-red)' }}
+        aria-label="Back to Pokédex"
       >
-        ← Back to Pokédex
+        <ArrowLeft size={16} /> Back to Pokédex
       </Link>
 
-      {/* Hero — Flat Anime Card */}
-      <div
-        className="rounded-[2rem] overflow-hidden relative transition-all duration-300"
-        style={{
-          background: 'var(--bg-card)',
-          border: `4px solid var(--text-primary)`,
-          boxShadow: `12px 12px 0px var(--text-primary)`,
-        }}
-      >
+      {/* Hero — Pointer-Reactive Card */}
+      <InteractiveHeroCard bgColor={bgColor}>
         {/* Animated Background layer - Flat Shapes */}
         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-white/5 dark:bg-black/20">
           <div
@@ -160,27 +157,32 @@ export default function PokemonDetailPage() {
               </span>
 
               {currentSprite && (
-                <Image
-                  src={currentSprite}
-                  alt={`${pokemon.name} ${spriteTab} ${showShiny ? 'shiny' : ''}`}
-                  width={spriteTab === 'animated' ? 160 : 240}
-                  height={spriteTab === 'animated' ? 160 : 240}
-                  className="relative z-10 transition-all duration-300 object-contain group-hover:-translate-y-2"
-                  style={{
-                    imageRendering: spriteTab === 'classic' || spriteTab === 'animated' ? 'pixelated' : 'auto',
-                    filter: showShiny ? `drop-shadow(4px 4px 0px rgba(245, 158, 11, 1))` : `drop-shadow(4px 4px 0px rgba(0, 0, 0, 1))`,
-                  }}
-                  unoptimized
-                />
+                <div data-hero-sprite className="relative z-10 select-none pointer-events-none transition-transform duration-300">
+                  <Image
+                    src={currentSprite}
+                    alt={`${pokemon.name} ${spriteTab} ${showShiny ? 'shiny' : ''}`}
+                    width={spriteTab === 'animated' ? 160 : 240}
+                    height={spriteTab === 'animated' ? 160 : 240}
+                    className="object-contain group-hover:-translate-y-2 transition-transform duration-300"
+                    style={{
+                      imageRendering: spriteTab === 'classic' || spriteTab === 'animated' ? 'pixelated' : 'auto',
+                      filter: showShiny ? `drop-shadow(4px 4px 0px rgba(245, 158, 11, 1))` : `drop-shadow(4px 4px 0px rgba(0, 0, 0, 1))`,
+                    }}
+                    unoptimized
+                  />
+                </div>
               )}
             </div>
 
             {/* Sprite tabs */}
-            <div className="flex flex-wrap gap-1.5 justify-center mb-3">
+            <div className="flex flex-wrap gap-1.5 justify-center mb-3" role="tablist" aria-label="Sprite gallery style tabs">
               {(Object.keys(spriteMap) as SpriteTab[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSpriteTab(tab)}
+                  role="tab"
+                  aria-selected={spriteTab === tab}
+                  aria-label={`Show ${spriteMap[tab].label} sprite`}
                   className="px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200"
                   style={{
                     background: spriteTab === tab ? bgColor : 'var(--bg-secondary)',
@@ -197,6 +199,8 @@ export default function PokemonDetailPage() {
             {/* Shiny toggle */}
             <button
               onClick={() => setShowShiny(!showShiny)}
+              aria-pressed={showShiny}
+              aria-label="Toggle shiny sprite view"
               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold transition-all duration-300"
               style={{
                 background: showShiny ? 'linear-gradient(135deg, #F59E0B, #EAB308)' : 'var(--bg-secondary)',
@@ -205,7 +209,7 @@ export default function PokemonDetailPage() {
                 boxShadow: showShiny ? '0 4px 15px rgba(245, 158, 11, 0.35)' : 'none',
               }}
             >
-              <span className="text-base">✨</span>
+              <Sparkles size={14} className={showShiny ? 'text-amber-950' : 'text-amber-500'} />
               {showShiny ? 'Shiny Active' : 'Toggle Shiny'}
             </button>
           </div>
@@ -229,13 +233,27 @@ export default function PokemonDetailPage() {
                     boxShadow: '1px 1px 0px var(--text-primary)',
                   }}
                   title="Play Cry"
+                  aria-label={`Play ${pokemon.name} battle cry`}
+                  aria-pressed={playingId === pokemon.id}
                 >
-                  {playingId === pokemon.id ? '🔊' : '🔈'}
+                  {playingId === pokemon.id ? (
+                    <Volume2 size={16} className="text-[var(--pokedex-red)] animate-pulse" />
+                  ) : (
+                    <Volume size={16} className="text-[var(--text-muted)]" />
+                  )}
                 </button>
               </div>
             </div>
 
-            <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} size="lg" />
+            <div className="flex items-center gap-4 flex-wrap">
+              <TypeBadgeGroup types={[pokemon.type1, pokemon.type2]} size="lg" />
+              <Link
+                href="/type-chart"
+                className="text-xs font-extrabold uppercase tracking-wider underline hover:text-[var(--pokedex-red)] transition-colors"
+              >
+                🔍 View full type chart
+              </Link>
+            </div>
 
             {pokemon.description && (
               <p className="leading-relaxed max-w-md" style={{ color: 'var(--text-secondary)' }}>
@@ -269,7 +287,8 @@ export default function PokemonDetailPage() {
             </div>
           </div>
         </div>
-      </div>
+      </InteractiveHeroCard>
+
 
       {/* Stats + Abilities */}
       <div className="grid lg:grid-cols-3 gap-6">
