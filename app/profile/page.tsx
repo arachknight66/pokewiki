@@ -74,7 +74,7 @@ export default function ProfilePage() {
               <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'var(--text-primary)', opacity: 0.05 }} />
             </div>
 
-            <div className="relative z-10 p-6 flex flex-col items-center text-center">
+            <div className="relative z-content p-6 flex flex-col items-center text-center">
               {/* Profile Image (AI Generated) */}
               <div className="relative w-32 h-32 mb-4 group cursor-pointer transition-transform hover:-translate-y-1">
                 <div className="absolute inset-0 border-4 border-[var(--text-primary)] rounded-[1rem] bg-[var(--bg-secondary)] overflow-hidden" style={{ boxShadow: '4px 4px 0px var(--text-primary)' }}>

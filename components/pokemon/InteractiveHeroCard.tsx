@@ -125,7 +125,7 @@ export default function InteractiveHeroCard({ children, bgColor }: InteractiveHe
     >
       {/* Radial glow layer */}
       <div
-        className="absolute inset-0 pointer-events-none z-10"
+        className="absolute inset-0 pointer-events-none z-content"
         style={{
           background: `radial-gradient(circle 250px at var(--pointer-x, 50%) var(--pointer-y, 50%), ${bgColor}aa, transparent)`,
           opacity: 'var(--glow-opacity, 0)',

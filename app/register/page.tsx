@@ -195,7 +195,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-100 transition-opacity z-10"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm opacity-40 hover:opacity-100 transition-opacity z-content"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 aria-pressed={showPassword}
               >
@@ -245,7 +245,7 @@ export default function RegisterPage() {
               />
               <div className="auth-input-glow" />
               {confirmPassword.length > 0 && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base transition-all z-10">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base transition-all z-content">
                   {passwordsMatch ? '✅' : '❌'}
                 </span>
               )}

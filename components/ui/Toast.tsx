@@ -26,7 +26,7 @@ export function Toast({ message, type, onClose, duration = 3500 }: ToastProps) {
 
   return (
     <div 
-      className="fixed bottom-5 right-5 z-50"
+      className="fixed bottom-5 right-5 z-toast"
       style={{ minWidth: '300px', maxWidth: '400px' }}
     >
       <div 

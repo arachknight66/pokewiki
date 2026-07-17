@@ -349,7 +349,7 @@ export default function SynergyGraph({ pokemonList }: SynergyGraphProps) {
       {/* Midpoint floating edge Relationship Tooltip */}
       {activeLink && tooltipPos && (
         <div
-          className="absolute z-30 p-3 rounded-xl border-4 border-[var(--text-primary)] shadow-[4px_4px_0px_var(--text-primary)] text-[10px] font-bold max-w-[200px] pointer-events-none transition-all duration-200"
+          className="absolute z-tooltip p-3 rounded-xl border-4 border-[var(--text-primary)] shadow-[4px_4px_0px_var(--text-primary)] text-[10px] font-bold max-w-[200px] pointer-events-none transition-all duration-200"
           style={{
             left: `${tooltipPos.x}px`,
             top: `${tooltipPos.y}px`,

@@ -22,7 +22,7 @@ export default function BackToTop() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="fixed bottom-8 right-8 z-[60] w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none animate-in fade-in slide-in-from-bottom-10"
+      className="fixed bottom-8 right-8 z-toast w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none animate-in fade-in slide-in-from-bottom-10"
       style={{
         background: 'linear-gradient(180deg, var(--pokedex-red) 0%, var(--pokedex-red) 45%, #1a1a2e 45%, #1a1a2e 55%, #ffffff 55%, #ffffff 100%)',
         border: '3px solid #1a1a2e',

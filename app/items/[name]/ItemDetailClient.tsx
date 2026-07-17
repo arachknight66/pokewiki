@@ -52,7 +52,7 @@ export default function ItemDetailClient({ initialData }: ItemDetailClientProps)
         {/* Decorative background stripe */}
         <div className="h-2 w-full bg-[var(--pokedex-red)]" />
 
-        <div className="p-6 lg:p-10 flex flex-col md:flex-row gap-8 items-center relative z-10">
+        <div className="p-6 lg:p-10 flex flex-col md:flex-row gap-8 items-center relative z-content">
           {/* Large Sprite */}
           <div className="w-24 h-24 flex items-center justify-center bg-white/5 dark:bg-black/20 rounded-full border border-[var(--border-color)] flex-shrink-0">
             <Image

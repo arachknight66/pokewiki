@@ -151,7 +151,7 @@ export default function TeamBuilderPage() {
               }} />
             </div>
 
-            <div className="relative z-10 space-y-5">
+            <div className="relative z-content space-y-5">
               <h2 className="text-2xl font-black font-display flex items-center gap-3">
                  <span style={{ color: 'var(--pokedex-red)' }}>⬣</span> Team Information
               </h2>
@@ -232,7 +232,7 @@ export default function TeamBuilderPage() {
                               alt={poke.name}
                               width={64}
                               height={64}
-                              className="relative z-10 object-contain mb-2 transition-transform group-hover:-translate-y-1"
+                              className="relative z-content object-contain mb-2 transition-transform group-hover:-translate-y-1"
                             />
                           )}
                         </div>

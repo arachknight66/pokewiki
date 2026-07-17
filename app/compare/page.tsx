@@ -3,7 +3,7 @@
  */
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -48,6 +48,44 @@ function ComparePageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
   const [mounted, setMounted] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Show dropdown when search query is typed, and reset keyboard focus index
+  useEffect(() => {
+    if (searchQuery.trim().length > 1) {
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+    }
+  }, [searchQuery]);
+
+  // Fetch search suggestions based on search query
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: ['compare-search', debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery.trim()) return [];
+      const response = await axios.get(`/api/pokemon?search=${debouncedQuery}&pageSize=5`);
+      return response.data?.data || [];
+    },
+    enabled: debouncedQuery.length > 1,
+  });
+
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [searchResults]);
 
   // Recharts mounted hydration fix
   useEffect(() => {
@@ -71,17 +109,6 @@ function ComparePageContent() {
       }
     }
   }, [searchParams, router, selectedIds]);
-
-  // Fetch search suggestions based on search query
-  const { data: searchResults, isLoading: searchLoading } = useQuery({
-    queryKey: ['compare-search', debouncedQuery],
-    queryFn: async () => {
-      if (!debouncedQuery.trim()) return [];
-      const response = await axios.get(`/api/pokemon?search=${debouncedQuery}&pageSize=5`);
-      return response.data?.data || [];
-    },
-    enabled: debouncedQuery.length > 1,
-  });
 
   // Parallel fetches for all selected Pokémon details
   const results = useQueries({
@@ -110,6 +137,8 @@ function ComparePageContent() {
     }
     setSelectedIds(prev => [...prev, id]);
     setSearchQuery('');
+    setShowDropdown(false);
+    setFocusedIndex(-1);
   };
 
   const removePokemon = (id: number) => {
@@ -177,12 +206,29 @@ function ComparePageContent() {
       </div>
 
       {/* Input recruitment box */}
-      <div className="relative w-full max-w-md">
+      <div ref={dropdownRef} className="relative w-full max-w-md">
         <div className="auth-input-wrapper">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (!showDropdown || !searchResults || searchResults.length === 0) return;
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setFocusedIndex(prev => (prev + 1) % searchResults.length);
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setFocusedIndex(prev => (prev - 1 + searchResults.length) % searchResults.length);
+              } else if (e.key === 'Enter') {
+                if (focusedIndex >= 0 && focusedIndex < searchResults.length) {
+                  e.preventDefault();
+                  addPokemon(searchResults[focusedIndex].id);
+                }
+              } else if (e.key === 'Escape') {
+                setShowDropdown(false);
+              }
+            }}
             placeholder="Search to add Pokémon... (e.g. Charizard)"
             className="auth-input shadow-inner !pl-10 text-sm"
           />
@@ -191,30 +237,35 @@ function ComparePageContent() {
         </div>
 
         {/* Suggestion Dropdown */}
-        {searchResults && searchResults.length > 0 && (
+        {showDropdown && searchResults && searchResults.length > 0 && (
           <div 
-            className="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl border-2 overflow-hidden shadow-lg p-1.5"
+            className="absolute top-full left-0 right-0 z-dropdown mt-2 rounded-2xl border-2 overflow-hidden shadow-lg p-1.5 max-h-80 overflow-y-auto"
             style={{ background: 'var(--bg-card)', borderColor: 'var(--text-primary)' }}
           >
-            {searchResults.map((poke: any) => (
-              <button
-                key={poke.id}
-                onClick={() => addPokemon(poke.id)}
-                className="w-full flex items-center justify-between p-2 hover:bg-[var(--bg-secondary)] rounded-xl font-bold transition-all text-xs border border-transparent hover:border-[var(--border-color)]"
-              >
-                <div className="flex items-center gap-2">
-                  <Image
-                    src={isShinyMode ? (poke.sprites?.frontShiny2d || poke.sprites?.front2d) : poke.sprites?.front2d}
-                    alt={poke.name}
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
-                  <span>{poke.name}</span>
-                </div>
-                <span className="text-[10px] text-muted">+#{poke.id}</span>
-              </button>
-            ))}
+            {searchResults.map((poke: any, index: number) => {
+              const isFocused = index === focusedIndex;
+              return (
+                <button
+                  key={poke.id}
+                  onClick={() => addPokemon(poke.id)}
+                  className={`w-full flex items-center justify-between p-2 hover:bg-[var(--bg-secondary)] rounded-xl font-bold transition-all text-xs border ${
+                    isFocused ? 'bg-[var(--bg-secondary)] border-[var(--text-primary)]' : 'border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Image
+                      src={isShinyMode ? (poke.sprites?.frontShiny2d || poke.sprites?.front2d) : poke.sprites?.front2d}
+                      alt={poke.name}
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                    />
+                    <span>{poke.name}</span>
+                  </div>
+                  <span className="text-[10px] text-muted">+#{poke.id}</span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

@@ -173,6 +173,18 @@ const config = {
           '50%':      { opacity: '1', transform: 'scale(1) rotate(180deg)' },
         },
       },
+      zIndex: {
+        'base': '0',
+        'content': '10',
+        'overlay-under': '20',
+        'nav': '50',
+        'mobile-menu': '60',
+        'dropdown': '70',
+        'toast': '80',
+        'tooltip': '90',
+        'modal': '100',
+        'sparkle': '9999',
+      },
     },
   },
   plugins: [

@@ -22,7 +22,7 @@ export default function PokeballLoader({ message = 'Loading...' }: { message?: s
           alt="Loading..."
           width={96}
           height={96}
-          className="w-24 h-24 drop-shadow-xl relative z-10"
+          className="w-24 h-24 drop-shadow-xl relative z-content"
           style={{ filter: 'drop-shadow(0 0 15px rgba(239, 68, 68, 0.3))' }}
         />
 

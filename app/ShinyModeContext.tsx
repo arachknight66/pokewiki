@@ -89,7 +89,7 @@ export function ShinyModeProvider({ children }: { children: React.ReactNode }) {
     <ShinyModeContext.Provider value={{ isShinyMode, toggleShinyMode }}>
       {children}
       {showSparkles && (
-        <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none z-sparkle overflow-hidden">
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes sparkleFloat {
               0% { transform: translate(0, 100vh) scale(0) rotate(0deg); opacity: 0; }

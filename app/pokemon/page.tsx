@@ -83,7 +83,7 @@ export default function PokemonPage() {
           }} />
         </div>
 
-        <div className="relative z-10 space-y-5">
+        <div className="relative z-content space-y-5">
           {/* Search */}
           <div>
             <label className="block text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: 'var(--text-muted)' }}>
@@ -217,7 +217,7 @@ export default function PokemonPage() {
                   <div className="relative flex items-center justify-center pt-4 pb-2 h-36">
                     <span className="text-5xl font-black font-mono animate-pulse">?</span>
                   </div>
-                  <div className="relative z-10 px-3.5 pb-3.5 space-y-1.5 font-mono">
+                  <div className="relative z-content px-3.5 pb-3.5 space-y-1.5 font-mono">
                     <p className="text-[10px] font-extrabold uppercase tracking-widest text-red-500">
                       #000
                     </p>
@@ -261,7 +261,7 @@ export default function PokemonPage() {
                         e.stopPropagation();
                         playCry(pokemon.id, getPokemonCryUrl(pokemon.id));
                       }}
-                      className={`absolute top-2 right-2 z-20 w-6 h-6 rounded-full flex items-center justify-center border text-[9px] transition-all hover:scale-110 active:scale-95 flex-shrink-0 ${playingId === pokemon.id ? 'animate-pulse' : ''}`}
+                      className={`absolute top-2 right-2 z-overlay-under w-6 h-6 rounded-full flex items-center justify-center border text-[9px] transition-all hover:scale-110 active:scale-95 flex-shrink-0 ${playingId === pokemon.id ? 'animate-pulse' : ''}`}
                       style={{
                         backgroundColor: 'var(--bg-secondary)',
                         borderColor: 'var(--text-primary)',
@@ -290,13 +290,13 @@ export default function PokemonPage() {
                           alt={pokemon.name}
                           width={120}
                           height={120}
-                          className="relative z-10 drop-shadow-lg group-hover:scale-110 group-hover:drop-shadow-2xl transition-all duration-300 ease-smooth object-contain"
+                          className="relative z-content drop-shadow-lg group-hover:scale-110 group-hover:drop-shadow-2xl transition-all duration-300 ease-smooth object-contain"
                         />
                       )}
                     </div>
 
                     {/* Info */}
-                    <div className="relative z-10 px-3.5 pb-3.5 space-y-1.5">
+                    <div className="relative z-content px-3.5 pb-3.5 space-y-1.5">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: bgColor }}>
                         #{String(pokemon.pokedexNumber).padStart(3, '0')}
                       </p>

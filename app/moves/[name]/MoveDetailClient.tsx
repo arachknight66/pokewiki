@@ -55,7 +55,7 @@ export default function MoveDetailClient({ initialData }: MoveDetailClientProps)
         {/* Decorative background stripe */}
         <div className="h-2 w-full" style={{ backgroundColor: bgColor }} />
 
-        <div className="p-6 lg:p-10 space-y-6 relative z-10">
+        <div className="p-6 lg:p-10 space-y-6 relative z-content">
           <div>
             <span 
               className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg text-white border border-[var(--text-primary)] shadow-sm"

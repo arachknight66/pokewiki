@@ -66,7 +66,7 @@ export default function TournamentsPage() {
               }}
               aria-selected={isActive}
               role="tab"
-              className={`px-6 py-3 text-sm font-black uppercase tracking-wider transition-all border-t-4 border-x-4 rounded-t-xl -mb-1 relative z-10 ${
+              className={`px-6 py-3 text-sm font-black uppercase tracking-wider transition-all border-t-4 border-x-4 rounded-t-xl -mb-1 relative z-content ${
                 isActive
                   ? 'bg-[var(--bg-card)] border-[var(--text-primary)] text-[var(--accent-gold)]'
                   : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'

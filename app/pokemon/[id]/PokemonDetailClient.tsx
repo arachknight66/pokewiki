@@ -126,9 +126,9 @@ export default function PokemonDetailClient({ pokemonId, initialData }: PokemonD
         </div>
 
         {/* Type color stripe at top */}
-        <div className="h-1.5 w-full relative z-10" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88, transparent)` }} />
+        <div className="h-1.5 w-full relative z-content" style={{ background: `linear-gradient(90deg, ${bgColor}, ${bgColor}88, transparent)` }} />
 
-        <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-10 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 p-6 lg:p-10 relative z-content">
           {/* Sprite Gallery */}
           <div className="flex flex-col items-center">
             <div className="relative w-full max-w-xs aspect-square rounded-2xl flex items-center justify-center mb-5 group">
@@ -144,7 +144,7 @@ export default function PokemonDetailClient({ pokemonId, initialData }: PokemonD
               </span>
 
               {currentSprite && (
-                <div data-hero-sprite className="relative z-10 select-none pointer-events-none transition-transform duration-300">
+                <div data-hero-sprite className="relative z-content select-none pointer-events-none transition-transform duration-300">
                   <Image
                     src={currentSprite}
                     alt={`${pokemon.name} ${spriteTab} ${finalShowShiny ? 'shiny' : ''}`}
