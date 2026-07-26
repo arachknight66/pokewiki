@@ -2,6 +2,8 @@ import React from 'react';
 import InteractiveTypeChart from '@/components/pokemon/InteractiveTypeChart';
 import { Metadata } from 'next';
 
+export const revalidate = 86400; // 24 hours ISR
+
 export const metadata: Metadata = {
   title: 'Type Effectiveness Chart | PokéWiki',
   description: 'Interactive Pokémon Type matchups, strengths, weaknesses, and defensive synergies matrix.',

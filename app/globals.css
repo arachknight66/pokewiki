@@ -47,6 +47,15 @@
   --scrollbar-track: #f0ebe3;
   --scrollbar-thumb: #1a1a2e;
   --scrollbar-thumb-hover: #DC2626;
+
+  /* Z-Index Scale */
+  --z-sticky-nav: 50;
+  --z-mobile-menu: 60;
+  --z-dropdown: 70;
+  --z-toast: 80;
+  --z-tooltip: 90;
+  --z-modal-overlay: 100;
+  --z-sparkle: 9999;
 }
 
 .dark {
