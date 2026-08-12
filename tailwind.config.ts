@@ -177,7 +177,7 @@ const config = {
         'base': '0',
         'content': '10',
         'overlay-under': '20',
-        'nav': '50',
+        'nav': '75',
         'mobile-menu': '60',
         'dropdown': '70',
         'toast': '80',
