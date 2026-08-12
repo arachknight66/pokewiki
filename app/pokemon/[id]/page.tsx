@@ -201,7 +201,7 @@ export default async function PokemonPage({ params }: PageProps) {
           }
         ` }} />
 
-        <div className="rounded-[2rem] border-4 border-dashed border-[var(--text-primary)] bg-[var(--bg-card)] shadow-[12px_12px_0px_var(--text-primary)] overflow-hidden relative p-8 md:p-12 glitch-blocks">
+        <div className="rounded-[2rem] border-4 border-dashed border-[var(--text-primary)] bg-[var(--bg-card)] shadow-[12px_12px_0px_var(--text-primary)] relative p-8 md:p-12 glitch-blocks">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             
             {/* Left Block - Glitched Image */}
